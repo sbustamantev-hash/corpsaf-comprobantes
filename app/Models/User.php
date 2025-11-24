@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +45,23 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Relación con comprobantes
+    public function comprobantes()
+    {
+        return $this->hasMany(Comprobante::class);
+    }
+
+    // Verificar si es admin
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    // Verificar si es operador/trabajador
+    public function isOperador()
+    {
+        return $this->role === 'trabajador' || $this->role === 'operador';
     }
 }

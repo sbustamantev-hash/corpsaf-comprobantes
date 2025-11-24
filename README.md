@@ -54,6 +54,105 @@ In order to ensure that the Laravel community is welcoming to all, please review
 
 If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
+## Docker
+
+Esta aplicación está dockerizada y lista para ejecutarse con Docker Compose.
+
+### Requisitos
+
+- Docker
+- Docker Compose
+
+### Configuración inicial
+
+1. **Clonar el repositorio** (si aún no lo has hecho):
+   ```bash
+   git clone <repository-url>
+   cd corpsaf-comprobantes
+   ```
+
+2. **Crear archivo de entorno**:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Construir y levantar los contenedores**:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+4. **Generar clave de aplicación** (si no se generó automáticamente):
+   ```bash
+   docker-compose exec app php artisan key:generate
+   ```
+
+5. **Ejecutar migraciones** (si no se ejecutaron automáticamente):
+   ```bash
+   docker-compose exec app php artisan migrate
+   ```
+
+### Acceso a la aplicación
+
+- **Aplicación web**: http://localhost:8000
+- **Base de datos MySQL**: 
+  - Host: `localhost`
+  - Puerto: `3306`
+  - Base de datos: `corpsaf` (o la configurada en `.env`)
+  - Usuario: `corpsaf_user` (o el configurado en `.env`)
+  - Contraseña: `corpsaf_password` (o la configurada en `.env`)
+
+### Comandos útiles
+
+- **Ver logs**:
+  ```bash
+  docker-compose logs -f app
+  ```
+
+- **Ejecutar comandos de Artisan**:
+  ```bash
+  docker-compose exec app php artisan <comando>
+  ```
+
+- **Acceder al contenedor**:
+  ```bash
+  docker-compose exec app bash
+  ```
+
+- **Detener los contenedores**:
+  ```bash
+  docker-compose down
+  ```
+
+- **Detener y eliminar volúmenes** (incluyendo la base de datos):
+  ```bash
+  docker-compose down -v
+  ```
+
+- **Reconstruir los contenedores**:
+  ```bash
+  docker-compose up -d --build
+  ```
+
+### Desarrollo con Vite
+
+Para desarrollo con hot-reload de Vite, puedes iniciar el servicio de Node:
+
+```bash
+docker-compose --profile dev up node
+```
+
+O iniciar todos los servicios incluyendo Node:
+
+```bash
+docker-compose --profile dev up
+```
+
+### Estructura de Docker
+
+- **app**: Contenedor principal con PHP 8.2, Nginx y la aplicación Laravel
+- **db**: Contenedor con MySQL 8.0
+- **node**: Contenedor opcional con Node.js para desarrollo con Vite
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

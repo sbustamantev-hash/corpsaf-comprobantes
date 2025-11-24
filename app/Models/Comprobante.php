@@ -26,4 +26,10 @@ class Comprobante extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // Relación con observaciones
+    public function observaciones()
+    {
+        return $this->hasMany(Observacion::class)->orderBy('created_at', 'asc');
+    }
 }
