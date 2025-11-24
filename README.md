@@ -1,158 +1,326 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CorpSAF - Sistema de Gestión de Comprobantes
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web desarrollado con Laravel para la gestión de comprobantes de pago, con roles de administrador y operador/trabajador.
 
-## About Laravel
+## 🚀 Características
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Autenticación de usuarios** con roles (Admin y Operador/Trabajador)
+- **Gestión de comprobantes** con estados (Pendiente, Aprobado, Rechazado)
+- **Sistema de observaciones** y comunicación en tiempo real
+- **Carga de archivos** (imágenes y PDFs) para comprobantes y observaciones
+- **Interfaz moderna** con Tailwind CSS
+- **Dockerizado** para fácil despliegue
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## Docker
-
-Esta aplicación está dockerizada y lista para ejecutarse con Docker Compose.
-
-### Requisitos
+## 📋 Requisitos
 
 - Docker
 - Docker Compose
+- Git (opcional, para clonar el repositorio)
 
-### Configuración inicial
+## 🔧 Instalación
 
-1. **Clonar el repositorio** (si aún no lo has hecho):
-   ```bash
-   git clone <repository-url>
-   cd corpsaf-comprobantes
-   ```
+### 1. Clonar el repositorio
 
-2. **Crear archivo de entorno**:
-   ```bash
-   cp .env.example .env
-   ```
+```bash
+git clone <repository-url>
+cd corpsaf-comprobantes
+```
 
-3. **Construir y levantar los contenedores**:
-   ```bash
-   docker-compose up -d --build
-   ```
+### 2. Configurar variables de entorno
 
-4. **Generar clave de aplicación** (si no se generó automáticamente):
-   ```bash
-   docker-compose exec app php artisan key:generate
-   ```
+Copia el archivo de ejemplo y ajusta las variables según necesites:
 
-5. **Ejecutar migraciones** (si no se ejecutaron automáticamente):
-   ```bash
-   docker-compose exec app php artisan migrate
-   ```
+```bash
+cp .env.example .env
+```
 
-### Acceso a la aplicación
+Edita el archivo `.env` y configura las siguientes variables importantes:
+
+```env
+APP_NAME="CorpSAF Comprobantes"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=corpsaf
+DB_USERNAME=corpsaf_user
+DB_PASSWORD=corpsaf_password
+```
+
+### 3. Construir y levantar los contenedores
+
+```bash
+docker-compose up -d --build
+```
+
+Este comando:
+- Construye la imagen de la aplicación
+- Levanta los contenedores de la aplicación y base de datos
+- Ejecuta automáticamente las migraciones
+- Genera la clave de aplicación si no existe
+- Crea el enlace simbólico para el almacenamiento
+
+### 4. Ejecutar seeders (usuarios de prueba)
+
+Para crear usuarios de prueba, ejecuta:
+
+```bash
+docker-compose exec app php artisan db:seed
+```
+
+Esto creará:
+- **Usuario administrador**: 
+  - Email/Usuario: `admin`
+  - Contraseña: `admin`
+- **Usuarios operadores**: Varios usuarios con DNI como usuario y contraseña (ej: `12345678`)
+
+### 5. Compilar assets (producción)
+
+Si no estás usando el perfil de desarrollo, compila los assets:
+
+```bash
+docker-compose exec app npm install
+docker-compose exec app npm run build
+```
+
+## 🌐 Acceso a la aplicación
+
+Una vez levantados los contenedores:
 
 - **Aplicación web**: http://localhost:8000
-- **Base de datos MySQL**: 
-  - Host: `localhost`
-  - Puerto: `3306`
-  - Base de datos: `corpsaf` (o la configurada en `.env`)
-  - Usuario: `corpsaf_user` (o el configurado en `.env`)
-  - Contraseña: `corpsaf_password` (o la configurada en `.env`)
+- **Login**: Usa las credenciales creadas por el seeder
 
-### Comandos útiles
+### Credenciales por defecto
 
-- **Ver logs**:
-  ```bash
-  docker-compose logs -f app
-  ```
+- **Administrador**:
+  - Usuario: `admin`
+  - Contraseña: `admin`
 
-- **Ejecutar comandos de Artisan**:
-  ```bash
-  docker-compose exec app php artisan <comando>
-  ```
+- **Operador/Trabajador**:
+  - Usuario: DNI (ej: `12345678`)
+  - Contraseña: DNI (ej: `12345678`)
 
-- **Acceder al contenedor**:
-  ```bash
-  docker-compose exec app bash
-  ```
+## 🗄️ Base de datos
 
-- **Detener los contenedores**:
-  ```bash
-  docker-compose down
-  ```
+### Conexión desde el host
 
-- **Detener y eliminar volúmenes** (incluyendo la base de datos):
-  ```bash
-  docker-compose down -v
-  ```
+- **Host**: `localhost`
+- **Puerto**: `3306`
+- **Base de datos**: `corpsaf` (o la configurada en `.env`)
+- **Usuario**: `corpsaf_user` (o el configurado en `.env`)
+- **Contraseña**: `corpsaf_password` (o la configurada en `.env`)
 
-- **Reconstruir los contenedores**:
-  ```bash
-  docker-compose up -d --build
-  ```
+### Conexión desde contenedores
+
+- **Host**: `db`
+- **Puerto**: `3306`
+- Resto de credenciales iguales
+
+## 👥 Roles y Permisos
+
+### Administrador
+
+- Puede ver todos los comprobantes
+- Puede aprobar o rechazar comprobantes
+- Puede agregar observaciones a cualquier comprobante
+- No puede crear ni editar comprobantes
+
+### Operador/Trabajador
+
+- Solo puede ver sus propios comprobantes
+- Puede crear nuevos comprobantes
+- Puede editar sus propios comprobantes (si están pendientes)
+- Puede agregar observaciones a sus propios comprobantes
+- Puede ver el estado de sus comprobantes
+
+## 🛠️ Comandos útiles
+
+### Gestión de contenedores
+
+```bash
+# Ver logs de la aplicación
+docker-compose logs -f app
+
+# Ver logs de la base de datos
+docker-compose logs -f db
+
+# Detener los contenedores
+docker-compose down
+
+# Detener y eliminar volúmenes (incluyendo la base de datos)
+docker-compose down -v
+
+# Reconstruir los contenedores
+docker-compose up -d --build
+```
+
+### Comandos de Artisan
+
+```bash
+# Ejecutar migraciones
+docker-compose exec app php artisan migrate
+
+# Ejecutar seeders
+docker-compose exec app php artisan db:seed
+
+# Limpiar caché
+docker-compose exec app php artisan cache:clear
+docker-compose exec app php artisan config:clear
+docker-compose exec app php artisan route:clear
+docker-compose exec app php artisan view:clear
+
+# Crear enlace simbólico para storage
+docker-compose exec app php artisan storage:link
+```
 
 ### Desarrollo con Vite
 
-Para desarrollo con hot-reload de Vite, puedes iniciar el servicio de Node:
+Para desarrollo con hot-reload de Vite:
 
 ```bash
+# Iniciar solo el servicio de Node
 docker-compose --profile dev up node
-```
 
-O iniciar todos los servicios incluyendo Node:
-
-```bash
+# O iniciar todos los servicios incluyendo Node
 docker-compose --profile dev up
 ```
 
-### Estructura de Docker
+**Nota**: En producción, asegúrate de compilar los assets con `npm run build` y no usar el perfil de desarrollo.
+
+### Acceder al contenedor
+
+```bash
+# Acceder al contenedor de la aplicación
+docker-compose exec app bash
+
+# Acceder al contenedor de la base de datos
+docker-compose exec db bash
+```
+
+## 📁 Estructura de Docker
 
 - **app**: Contenedor principal con PHP 8.2, Nginx y la aplicación Laravel
 - **db**: Contenedor con MySQL 8.0
-- **node**: Contenedor opcional con Node.js para desarrollo con Vite
+- **node**: Contenedor opcional con Node.js 20 para desarrollo con Vite (perfil `dev`)
 
-## License
+## 📝 Estructura del Proyecto
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```
+corpsaf-comprobantes/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── ComprobanteController.php
+│   │   │   └── Auth/
+│   │   │       └── LoginController.php
+│   │   └── Middleware/
+│   │       └── CheckRole.php
+│   └── Models/
+│       ├── Comprobante.php
+│       ├── Observacion.php
+│       └── User.php
+├── database/
+│   ├── migrations/
+│   └── seeders/
+│       ├── DatabaseSeeder.php
+│       └── UserSeeder.php
+├── docker/
+│   ├── nginx/
+│   │   └── default.conf
+│   └── entrypoint.sh
+├── resources/
+│   ├── views/
+│   │   ├── auth/
+│   │   │   └── login.blade.php
+│   │   ├── comprobantes/
+│   │   │   ├── index.blade.php
+│   │   │   ├── create.blade.php
+│   │   │   ├── edit.blade.php
+│   │   │   └── show.blade.php
+│   │   └── layouts/
+│   │       └── app.blade.php
+│   ├── css/
+│   │   └── app.css
+│   └── js/
+│       └── app.js
+├── routes/
+│   └── web.php
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+## 🔐 Seguridad
+
+- Los archivos subidos se almacenan en `storage/app/public`
+- Los archivos se sirven a través de rutas protegidas con autenticación
+- Las contraseñas se hashean con bcrypt
+- Los roles se validan mediante middleware
+
+## 🐛 Solución de problemas
+
+### Error: "APP_KEY is missing"
+
+```bash
+docker-compose exec app php artisan key:generate
+```
+
+### Error: "Storage link not found"
+
+```bash
+docker-compose exec app php artisan storage:link
+```
+
+### Error: "Styles not showing"
+
+1. Asegúrate de que los assets estén compilados:
+   ```bash
+   docker-compose exec app npm run build
+   ```
+
+2. Si estás usando el perfil de desarrollo, detén el servicio de Node:
+   ```bash
+   docker-compose down node
+   ```
+
+3. Limpia la caché:
+   ```bash
+   docker-compose exec app php artisan optimize:clear
+   ```
+
+### Error: "Database connection failed"
+
+1. Verifica que el contenedor de la base de datos esté corriendo:
+   ```bash
+   docker-compose ps
+   ```
+
+2. Verifica las credenciales en el archivo `.env`
+
+3. Espera unos segundos después de levantar los contenedores para que MySQL esté listo
+
+## 📄 Licencia
+
+Este proyecto es software de código abierto bajo la licencia [MIT](https://opensource.org/licenses/MIT).
+
+## 👨‍💻 Desarrollo
+
+### Tecnologías utilizadas
+
+- **Backend**: Laravel 12.x
+- **Frontend**: Tailwind CSS, Blade Templates
+- **Base de datos**: MySQL 8.0
+- **Servidor web**: Nginx
+- **PHP**: 8.2
+- **Node.js**: 20 (para Vite)
+
+### Contribuir
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
