@@ -13,11 +13,31 @@ Sistema web desarrollado con Laravel para la gestión de comprobantes de pago, c
 
 ## 📋 Requisitos
 
+### Con Docker (Recomendado)
+
 - Docker
 - Docker Compose
 - Git (opcional, para clonar el repositorio)
 
+### Sin Docker
+
+- PHP 8.2 o superior
+- Composer
+- MySQL 8.0 o superior (o MariaDB)
+- Node.js 20 o superior y npm
+- Git (opcional, para clonar el repositorio)
+
 ## 🔧 Instalación
+
+Elige el método de instalación que prefieras:
+
+- [Instalación con Docker](#instalación-con-docker) (Recomendado)
+- [Instalación con Laragon](#instalación-con-laragon) (Windows)
+- [Instalación Manual](#instalación-manual) (Sin Docker)
+
+---
+
+## 🐳 Instalación con Docker
 
 ### 1. Clonar el repositorio
 
@@ -85,6 +105,317 @@ Si no estás usando el perfil de desarrollo, compila los assets:
 docker-compose exec app npm install
 docker-compose exec app npm run build
 ```
+
+---
+
+## 🪟 Instalación con Laragon (Windows)
+
+Laragon es un entorno de desarrollo local para Windows que incluye PHP, MySQL, Apache/Nginx y más.
+
+### 1. Instalar Laragon
+
+1. Descarga Laragon desde [laragon.org](https://laragon.org/download/)
+2. Instala Laragon en tu sistema
+3. Asegúrate de tener las siguientes versiones:
+   - PHP 8.2 o superior
+   - MySQL 8.0 o superior
+   - Node.js 20 o superior (instálalo por separado si no está incluido)
+
+### 2. Clonar el repositorio
+
+```bash
+# Navega a la carpeta www de Laragon (o donde prefieras)
+cd C:\laragon\www
+git clone <repository-url>
+cd corpsaf-comprobantes
+```
+
+### 3. Instalar dependencias de PHP
+
+```bash
+composer install
+```
+
+### 4. Configurar variables de entorno
+
+```bash
+# Copia el archivo de ejemplo
+copy .env.example .env
+```
+
+Edita el archivo `.env` y configura:
+
+```env
+APP_NAME="CorpSAF Comprobantes"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://corpsaf-comprobantes.test
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=corpsaf
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**Nota**: Laragon usa `root` sin contraseña por defecto. Ajusta según tu configuración.
+
+### 5. Crear la base de datos
+
+1. Abre Laragon y haz clic en "Database" o accede a phpMyAdmin
+2. Crea una nueva base de datos llamada `corpsaf` (o la que configuraste en `.env`)
+
+### 6. Generar clave de aplicación
+
+```bash
+php artisan key:generate
+```
+
+### 7. Ejecutar migraciones y seeders
+
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+### 8. Crear enlace simbólico para storage
+
+```bash
+php artisan storage:link
+```
+
+### 9. Instalar dependencias de Node.js y compilar assets
+
+```bash
+npm install
+npm run build
+```
+
+### 10. Configurar virtual host en Laragon
+
+1. Abre Laragon
+2. Haz clic derecho en el proyecto y selecciona "Menu" > "Apache" > "Add Site"
+3. O manualmente, edita `C:\laragon\etc\apache2\sites-enabled\corpsaf-comprobantes.test.conf`:
+
+```apache
+<VirtualHost *:80>
+    ServerName corpsaf-comprobantes.test
+    DocumentRoot "C:/laragon/www/corpsaf-comprobantes/public"
+    <Directory "C:/laragon/www/corpsaf-comprobantes/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+4. Reinicia Apache en Laragon
+
+### 11. Acceder a la aplicación
+
+- **URL**: http://corpsaf-comprobantes.test
+- O usa: http://localhost/corpsaf-comprobantes/public
+
+### Comandos útiles con Laragon
+
+```bash
+# Iniciar servidor de desarrollo (opcional, Laragon ya lo hace)
+php artisan serve
+
+# Compilar assets en modo desarrollo
+npm run dev
+
+# Ver logs
+php artisan pail
+```
+
+---
+
+## 💻 Instalación Manual (Sin Docker)
+
+Esta guía es para instalar el proyecto sin Docker ni Laragon, usando instalaciones manuales de PHP, MySQL, etc.
+
+### 1. Requisitos previos
+
+Asegúrate de tener instalado:
+
+- **PHP 8.2+** con extensiones: `pdo_mysql`, `mbstring`, `exif`, `pcntl`, `bcmath`, `gd`
+- **Composer** ([getcomposer.org](https://getcomposer.org/))
+- **MySQL 8.0+** o MariaDB
+- **Node.js 20+** y npm
+- **Servidor web** (Apache/Nginx) o usar `php artisan serve`
+
+### 2. Clonar el repositorio
+
+```bash
+git clone <repository-url>
+cd corpsaf-comprobantes
+```
+
+### 3. Instalar dependencias de PHP
+
+```bash
+composer install
+```
+
+### 4. Configurar variables de entorno
+
+```bash
+cp .env.example .env
+```
+
+Edita el archivo `.env`:
+
+```env
+APP_NAME="CorpSAF Comprobantes"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=corpsaf
+DB_USERNAME=root
+DB_PASSWORD=tu_contraseña
+```
+
+### 5. Crear la base de datos
+
+```sql
+CREATE DATABASE corpsaf CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+O usa tu herramienta de gestión de MySQL preferida (phpMyAdmin, MySQL Workbench, etc.)
+
+### 6. Generar clave de aplicación
+
+```bash
+php artisan key:generate
+```
+
+### 7. Ejecutar migraciones y seeders
+
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+### 8. Crear enlace simbólico para storage
+
+```bash
+php artisan storage:link
+```
+
+### 9. Instalar dependencias de Node.js
+
+```bash
+npm install
+```
+
+### 10. Compilar assets
+
+Para producción:
+```bash
+npm run build
+```
+
+Para desarrollo (con hot-reload):
+```bash
+npm run dev
+```
+
+### 11. Configurar servidor web
+
+#### Opción A: Usar servidor de desarrollo de Laravel
+
+```bash
+php artisan serve
+```
+
+Accede a: http://localhost:8000
+
+#### Opción B: Configurar Apache
+
+Crea un virtual host en tu configuración de Apache:
+
+```apache
+<VirtualHost *:80>
+    ServerName corpsaf.local
+    DocumentRoot "/ruta/a/corpsaf-comprobantes/public"
+    <Directory "/ruta/a/corpsaf-comprobantes/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+Agrega a tu archivo `/etc/hosts` (Linux/Mac) o `C:\Windows\System32\drivers\etc\hosts` (Windows):
+
+```
+127.0.0.1    corpsaf.local
+```
+
+#### Opción C: Configurar Nginx
+
+```nginx
+server {
+    listen 80;
+    server_name corpsaf.local;
+    root /ruta/a/corpsaf-comprobantes/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+### 12. Permisos (Linux/Mac)
+
+```bash
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+```
+
+### Comandos útiles
+
+```bash
+# Limpiar caché
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+
+# Optimizar aplicación
+php artisan optimize
+
+# Ver logs
+tail -f storage/logs/laravel.log
+```
+
+---
 
 ## 🌐 Acceso a la aplicación
 
