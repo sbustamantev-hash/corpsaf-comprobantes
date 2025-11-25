@@ -32,13 +32,20 @@
                     <span class="font-medium">Dashboard</span>
                 </a>
                 
-                @if(auth()->user()->isAdmin())
+                @if(auth()->user()->isAdmin() || auth()->user()->isAreaAdmin())
                 <div class="pt-2 mt-2 border-t border-gray-200">
                     <p class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Administración</p>
+                    @if(auth()->user()->isAdmin())
                     <a href="{{ route('areas.index') }}" 
                        class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('areas.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                         <i class="fas fa-building w-5"></i>
                         <span class="font-medium">Áreas/Empresas</span>
+                    </a>
+                    @endif
+                    <a href="{{ route('users.index') }}" 
+                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="fas fa-users w-5"></i>
+                        <span class="font-medium">Usuarios</span>
                     </a>
                 </div>
                 @endif

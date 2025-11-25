@@ -133,6 +133,129 @@ class AnticipoController extends Controller
     }
 
     /**
+     * Ver detalle del anticipo
+     */
+    public function show($id)
+    {
+        $user = Auth::user();
+        $anticipo = Anticipo::with([
+            'usuario',
+            'area',
+            'banco',
+            'creador',
+            'comprobantes.user',
+            'comprobantes.observaciones.user'
+        ])->findOrFail($id);
+
+        // Verificar permisos
+        if ($user->isAreaAdmin()) {
+            if ($anticipo->area_id !== $user->area_id) {
+                abort(403, 'No tienes permisos para ver este anticipo.');
+            }
+        } elseif ($user->isOperador()) {
+            if ($anticipo->user_id !== $user->id) {
+                abort(403, 'No tienes permisos para ver este anticipo.');
+            }
+        }
+
+        $totalComprobado = $anticipo->comprobantes->sum('monto');
+        $restante = max(0, $anticipo->importe - $totalComprobado);
+        $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
+
+        return view('anticipos.show', compact('anticipo', 'totalComprobado', 'restante', 'porcentaje'));
+    }
+
+    /**
+     * Aprobar anticipo
+     */
+    public function aprobar(Request $request, $id)
+    {
+        $user = Auth::user();
+        
+        // Solo super admin y area admin pueden aprobar
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores pueden aprobar anticipos.');
+        }
+
+        $request->validate([
+            'mensaje' => 'required|string|min:10',
+        ]);
+
+        $anticipo = Anticipo::with('area')->findOrFail($id);
+        
+        // Area admin solo puede aprobar anticipos de su área
+        if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes aprobar anticipos de tu área.');
+        }
+        
+        // Cambiar estado
+        $anticipo->estado = 'aprobado';
+        $anticipo->save();
+
+        return redirect()->route('anticipos.show', $anticipo->id)
+                         ->with('success', 'Anticipo aprobado correctamente.');
+    }
+
+    /**
+     * Rechazar anticipo
+     */
+    public function rechazar(Request $request, $id)
+    {
+        $user = Auth::user();
+        
+        // Solo super admin y area admin pueden rechazar
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores pueden rechazar anticipos.');
+        }
+
+        $request->validate([
+            'mensaje' => 'required|string|min:10',
+        ]);
+
+        $anticipo = Anticipo::with('area')->findOrFail($id);
+        
+        // Area admin solo puede rechazar anticipos de su área
+        if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes rechazar anticipos de tu área.');
+        }
+        
+        // Cambiar estado
+        $anticipo->estado = 'rechazado';
+        $anticipo->save();
+
+        return redirect()->route('anticipos.show', $anticipo->id)
+                         ->with('success', 'Anticipo rechazado correctamente.');
+    }
+
+    /**
+     * Exportar anticipo a PDF
+     */
+    public function exportPdf($id)
+    {
+        // TODO: Implementar exportación a PDF cuando se pase el formato
+        $anticipo = Anticipo::with(['usuario', 'area', 'banco', 'comprobantes'])->findOrFail($id);
+        
+        return response()->json([
+            'message' => 'Exportación a PDF pendiente de implementar',
+            'anticipo' => $anticipo
+        ]);
+    }
+
+    /**
+     * Exportar anticipo a Excel
+     */
+    public function exportExcel($id)
+    {
+        // TODO: Implementar exportación a Excel cuando se pase el formato
+        $anticipo = Anticipo::with(['usuario', 'area', 'banco', 'comprobantes'])->findOrFail($id);
+        
+        return response()->json([
+            'message' => 'Exportación a Excel pendiente de implementar',
+            'anticipo' => $anticipo
+        ]);
+    }
+
+    /**
      * Descargar archivo adjunto de anticipo (si se agregan archivos)
      */
     public function downloadArchivo($id)

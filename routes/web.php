@@ -5,6 +5,7 @@ use App\Http\Controllers\ComprobanteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AnticipoController;
+use App\Http\Controllers\UserController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -43,9 +44,19 @@ Route::middleware('auth')->group(function () {
     Route::post('areas/{area}/users', [AreaController::class, 'storeUser'])->name('areas.users.store');
     Route::put('areas/{area}/users/{user}', [AreaController::class, 'updateUser'])->name('areas.users.update');
     Route::delete('areas/{area}/users/{user}', [AreaController::class, 'destroyUser'])->name('areas.users.destroy');
+    
+    // RUTAS CRUD DE USUARIOS - Admin y Area Admin
+    Route::resource('users', UserController::class);
 
     // Anticipos
     Route::get('areas/{area}/users/{user}/anticipos/create', [AnticipoController::class, 'create'])->name('areas.users.anticipos.create');
     Route::post('areas/{area}/users/{user}/anticipos', [AnticipoController::class, 'store'])->name('areas.users.anticipos.store');
     Route::post('anticipos/{anticipo}/comprobantes', [AnticipoController::class, 'uploadComprobante'])->name('anticipos.comprobantes.store');
+    
+    // Rutas para ver, aprobar/rechazar y exportar anticipos
+    Route::get('anticipos/{anticipo}', [AnticipoController::class, 'show'])->name('anticipos.show');
+    Route::post('anticipos/{anticipo}/aprobar', [AnticipoController::class, 'aprobar'])->name('anticipos.aprobar');
+    Route::post('anticipos/{anticipo}/rechazar', [AnticipoController::class, 'rechazar'])->name('anticipos.rechazar');
+    Route::get('anticipos/{anticipo}/export/pdf', [AnticipoController::class, 'exportPdf'])->name('anticipos.export.pdf');
+    Route::get('anticipos/{anticipo}/export/excel', [AnticipoController::class, 'exportExcel'])->name('anticipos.export.excel');
 });

@@ -369,6 +369,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Importe</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Comprobado</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -398,11 +399,26 @@
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             <i class="fas fa-check mr-1"></i>Completo
                                         </span>
+                                    @elseif($anticipo->estado === 'aprobado')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <i class="fas fa-check-circle mr-1"></i>Aprobado
+                                        </span>
+                                    @elseif($anticipo->estado === 'rechazado')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle mr-1"></i>Rechazado
+                                        </span>
                                     @else
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                             <i class="fas fa-hourglass-half mr-1"></i>Pendiente
                                         </span>
                                     @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ route('anticipos.show', $anticipo->id) }}" 
+                                       class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition"
+                                       title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
