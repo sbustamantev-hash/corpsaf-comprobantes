@@ -64,17 +64,18 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Archivo (imagen o PDF)</label>
-                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition">
+                    <div id="drop-zone" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition cursor-pointer">
                         <div class="space-y-1 text-center">
                             <i class="fas fa-cloud-upload-alt text-gray-400 text-3xl"></i>
-                            <div class="flex text-sm text-gray-600">
+                            <div class="flex text-sm text-gray-600 justify-center">
                                 <label for="archivo" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
                                     <span>Subir archivo</span>
-                                    <input id="archivo" name="archivo" type="file" class="sr-only" accept="image/*,application/pdf">
+                                    <input id="archivo" name="archivo" type="file" class="sr-only" accept="image/*,application/pdf" onchange="handleFileSelect(this)">
                                 </label>
                                 <p class="pl-1">o arrastra y suelta</p>
                             </div>
                             <p class="text-xs text-gray-500">PNG, JPG, PDF hasta 2MB</p>
+                            <p id="file-name" class="text-xs text-green-600 mt-2 hidden"></p>
                         </div>
                     </div>
                     @error('archivo')
@@ -96,4 +97,69 @@
         </form>
     </div>
 </div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('archivo');
+    const fileName = document.getElementById('file-name');
+
+    // Prevenir comportamiento por defecto del navegador
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Efectos visuales al arrastrar
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('border-blue-500', 'bg-blue-50');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    }
+
+    // Manejar archivos soltados
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(fileInput);
+        }
+    }
+
+    // Manejar selección de archivo
+    function handleFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+            fileName.textContent = `Archivo seleccionado: ${file.name} (${fileSize} MB)`;
+            fileName.classList.remove('hidden');
+            dropZone.classList.add('border-green-400', 'bg-green-50');
+        }
+    }
+
+    // Click en toda la zona para abrir el selector
+    dropZone.addEventListener('click', (e) => {
+        if (e.target !== fileInput && e.target.tagName !== 'LABEL') {
+            fileInput.click();
+        }
+    });
+</script>
 @endsection
