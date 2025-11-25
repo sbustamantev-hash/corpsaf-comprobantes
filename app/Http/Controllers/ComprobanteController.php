@@ -42,6 +42,11 @@ class ComprobanteController extends Controller
                               ->whereIn('role', ['operador', 'trabajador'])
                               ->orderBy('name')
                               ->get();
+
+            $anticipos = Anticipo::with(['banco', 'creador', 'usuario'])
+                                 ->where('area_id', $user->area_id)
+                                 ->orderBy('fecha', 'desc')
+                                 ->get();
         }
         // Operador: ver solo sus propios comprobantes
         else {
@@ -62,7 +67,7 @@ class ComprobanteController extends Controller
     }
 
     // FORMULARIO CREAR
-    public function create()
+    public function create(Request $request)
     {
         $user = Auth::user();
         
@@ -71,18 +76,32 @@ class ComprobanteController extends Controller
             abort(403, 'Solo los operadores pueden crear comprobantes.');
         }
         
-        return view('comprobantes.create');
+        $anticipo = null;
+        if ($request->filled('anticipo_id')) {
+            $anticipo = Anticipo::with('usuario')->findOrFail($request->anticipo_id);
+
+            if ($anticipo->user_id !== $user->id) {
+                abort(403, 'No tienes permisos para subir comprobantes de este anticipo.');
+            }
+        }
+
+        $tiposComprobante = TipoComprobante::where('activo', true)
+                                            ->orderBy('descripcion')
+                                            ->get();
+        
+        return view('comprobantes.create', compact('anticipo', 'tiposComprobante'));
     }
 
     // GUARDAR EN BD
     public function store(Request $request)
     {
-        $request->validate([
-            'tipo'    => 'required|string|max:50',
+        $validated = $request->validate([
+            'tipo'    => 'required|exists:tipos_comprobante,codigo',
             'monto'   => 'required|numeric',
             'fecha'   => 'required|date',
             'detalle' => 'nullable|string',
-            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'anticipo_id' => 'nullable|exists:anticipos,id'
         ]);
 
         $archivoPath = null;
@@ -94,15 +113,33 @@ class ComprobanteController extends Controller
         // Asignar al usuario autenticado
         $user = Auth::user();
 
-        Comprobante::create([
+        $anticipo = null;
+        if (!empty($validated['anticipo_id'])) {
+            $anticipo = Anticipo::with('comprobantes')->findOrFail($validated['anticipo_id']);
+
+            if ($anticipo->user_id !== $user->id) {
+                abort(403, 'No puedes registrar comprobantes para este anticipo.');
+            }
+        }
+
+        $comprobante = Comprobante::create([
             'user_id' => $user->id,
-            'tipo'    => $request->tipo,
-            'monto'   => $request->monto,
-            'fecha'   => $request->fecha,
-            'detalle' => $request->detalle,
+            'anticipo_id' => $anticipo?->id,
+            'tipo'    => $validated['tipo'],
+            'monto'   => $validated['monto'],
+            'fecha'   => $validated['fecha'],
+            'detalle' => $validated['detalle'] ?? null,
             'archivo' => $archivoPath,
             'estado'  => 'pendiente'
         ]);
+
+        if ($anticipo) {
+            $totalComprobado = $anticipo->comprobantes()->sum('monto');
+            if ($totalComprobado >= $anticipo->importe) {
+                $anticipo->estado = 'completo';
+                $anticipo->save();
+            }
+        }
 
         return redirect()->route('comprobantes.index')
                          ->with('success', 'Comprobante registrado correctamente.');

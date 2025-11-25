@@ -330,6 +330,8 @@
             </div>
             @endif
 
+        @endforeach
+
     </div>
 
     <!-- Botón volver -->

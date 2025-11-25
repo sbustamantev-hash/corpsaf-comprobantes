@@ -6,18 +6,33 @@
 @section('content')
 <div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        @if(isset($anticipo))
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                <p class="text-sm text-blue-800 font-semibold">Subiendo comprobante para:</p>
+                <p class="text-lg font-bold text-blue-900 mt-1">{{ ucfirst($anticipo->tipo) }} del {{ $anticipo->fecha->format('d/m/Y') }}</p>
+                <p class="text-sm text-blue-700">Monto asignado: S/ {{ number_format($anticipo->importe, 2) }}</p>
+            </div>
+        @endif
+
         <form action="{{ route('comprobantes.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
+            @if(isset($anticipo))
+                <input type="hidden" name="anticipo_id" value="{{ $anticipo->id }}">
+            @endif
 
             <div class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante</label>
-                    <input type="text" 
-                           name="tipo" 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipo') border-red-500 @enderror" 
-                           value="{{ old('tipo') }}" 
-                           required
-                           placeholder="Ej: Boleta, Recibo, Vale">
+                    <select name="tipo"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipo') border-red-500 @enderror"
+                            required>
+                        <option value="">Selecciona un tipo</option>
+                        @foreach($tiposComprobante as $tipo)
+                            <option value="{{ $tipo->codigo }}" {{ old('tipo') == $tipo->codigo ? 'selected' : '' }}>
+                                [{{ $tipo->codigo }}] {{ $tipo->descripcion }}
+                            </option>
+                        @endforeach
+                    </select>
                     @error('tipo')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
