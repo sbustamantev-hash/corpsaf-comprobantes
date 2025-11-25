@@ -25,22 +25,31 @@
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 p-4 space-y-2">
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
                 <a href="{{ route('comprobantes.index') }}" 
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('comprobantes.index') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <i class="fas fa-th-large w-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
+                
+                @if(auth()->user()->isOperador())
                 <a href="{{ route('comprobantes.create') }}" 
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('comprobantes.create') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <i class="fas fa-plus-circle w-5"></i>
                     <span class="font-medium">Nuevo Comprobante</span>
                 </a>
-                <a href="{{ route('comprobantes.index') }}" 
-                   class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50">
-                    <i class="fas fa-list w-5"></i>
-                    <span class="font-medium">Todos los Comprobantes</span>
-                </a>
+                @endif
+                
+                @if(auth()->user()->isAdmin())
+                <div class="pt-2 mt-2 border-t border-gray-200">
+                    <p class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Administración</p>
+                    <a href="{{ route('areas.index') }}" 
+                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('areas.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="fas fa-building w-5"></i>
+                        <span class="font-medium">Áreas/Empresas</span>
+                    </a>
+                </div>
+                @endif
             </nav>
 
             <!-- User Profile -->
@@ -57,12 +66,22 @@
                 <div class="mb-2">
                     @if(Auth::user()->isAdmin())
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <i class="fas fa-shield-alt mr-1"></i>Administrador
+                            <i class="fas fa-shield-alt mr-1"></i>Super Admin
                         </span>
+                    @elseif(Auth::user()->isAreaAdmin())
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            <i class="fas fa-user-shield mr-1"></i>Admin Área
+                        </span>
+                        @if(Auth::user()->area)
+                        <p class="text-xs text-gray-500 mt-1">{{ Auth::user()->area->nombre }}</p>
+                        @endif
                     @else
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             <i class="fas fa-user mr-1"></i>Operador
                         </span>
+                        @if(Auth::user()->area)
+                        <p class="text-xs text-gray-500 mt-1">{{ Auth::user()->area->nombre }}</p>
+                        @endif
                     @endif
                 </div>
                 <form action="{{ route('logout') }}" method="POST" class="mt-3">

@@ -16,12 +16,25 @@ class ComprobanteController extends Controller
     {
         $user = Auth::user();
         
-        // Si es admin, ver todos los comprobantes
-        // Si es operador/trabajador, solo los suyos
+        // Super admin: ver todos los comprobantes
         if ($user->isAdmin()) {
-            $comprobantes = Comprobante::orderBy('id', 'desc')->get();
-        } else {
-            $comprobantes = Comprobante::where('user_id', $user->id)
+            $comprobantes = Comprobante::with('user.area')
+                                      ->orderBy('id', 'desc')
+                                      ->get();
+        }
+        // Area admin: ver solo comprobantes de su área
+        elseif ($user->isAreaAdmin()) {
+            $comprobantes = Comprobante::with('user.area')
+                                      ->whereHas('user', function ($query) use ($user) {
+                                          $query->where('area_id', $user->area_id);
+                                      })
+                                      ->orderBy('id', 'desc')
+                                      ->get();
+        }
+        // Operador: ver solo sus propios comprobantes
+        else {
+            $comprobantes = Comprobante::with('user.area')
+                                      ->where('user_id', $user->id)
                                       ->orderBy('id', 'desc')
                                       ->get();
         }
@@ -32,6 +45,13 @@ class ComprobanteController extends Controller
     // FORMULARIO CREAR
     public function create()
     {
+        $user = Auth::user();
+        
+        // Solo operadores pueden crear comprobantes
+        if (!$user->isOperador()) {
+            abort(403, 'Solo los operadores pueden crear comprobantes.');
+        }
+        
         return view('comprobantes.create');
     }
 
@@ -73,10 +93,23 @@ class ComprobanteController extends Controller
     public function show($id)
     {
         $user = Auth::user();
-        $comprobante = Comprobante::with(['user', 'observaciones.user'])->findOrFail($id);
+        $comprobante = Comprobante::with(['user.area', 'observaciones.user'])->findOrFail($id);
         
-        // Si es operador, solo puede ver sus propios comprobantes
-        if (!$user->isAdmin() && $comprobante->user_id !== $user->id) {
+        // Super admin: puede ver todo
+        if ($user->isAdmin()) {
+            return view('comprobantes.show', compact('comprobante'));
+        }
+        
+        // Area admin: solo puede ver comprobantes de su área
+        if ($user->isAreaAdmin()) {
+            if ($comprobante->user->area_id !== $user->area_id) {
+                abort(403, 'No tienes permisos para ver este comprobante.');
+            }
+            return view('comprobantes.show', compact('comprobante'));
+        }
+        
+        // Operador: solo puede ver sus propios comprobantes
+        if ($comprobante->user_id !== $user->id) {
             abort(403, 'No tienes permisos para ver este comprobante.');
         }
         
@@ -89,12 +122,12 @@ class ComprobanteController extends Controller
         $user = Auth::user();
         $comprobante = Comprobante::with('user')->findOrFail($id);
         
-        // Admin no puede editar
-        if ($user->isAdmin()) {
-            abort(403, 'El administrador no puede editar comprobantes. Use la vista de detalles para aprobar o rechazar.');
+        // Solo operadores pueden editar
+        if (!$user->isOperador()) {
+            abort(403, 'Solo los operadores pueden editar comprobantes.');
         }
         
-        // Si es operador, solo puede editar sus propios comprobantes
+        // Solo puede editar sus propios comprobantes
         if ($comprobante->user_id !== $user->id) {
             abort(403, 'No tienes permisos para editar este comprobante.');
         }
@@ -167,10 +200,20 @@ class ComprobanteController extends Controller
     public function download($id)
     {
         $user = Auth::user();
-        $comprobante = Comprobante::findOrFail($id);
+        $comprobante = Comprobante::with('user')->findOrFail($id);
         
-        // Verificar permisos: admin puede ver todos, operador solo los suyos
-        if (!$user->isAdmin() && $comprobante->user_id !== $user->id) {
+        // Super admin: puede ver todos
+        if ($user->isAdmin()) {
+            // Permitir
+        }
+        // Area admin: solo de su área
+        elseif ($user->isAreaAdmin()) {
+            if ($comprobante->user->area_id !== $user->area_id) {
+                abort(403, 'No tienes permisos para ver este archivo.');
+            }
+        }
+        // Operador: solo los suyos
+        elseif ($comprobante->user_id !== $user->id) {
             abort(403, 'No tienes permisos para ver este archivo.');
         }
 
@@ -187,12 +230,13 @@ class ComprobanteController extends Controller
         return response()->file($filePath);
     }
 
-    // APROBAR COMPROBANTE (solo admin)
+    // APROBAR COMPROBANTE (super admin y area admin)
     public function aprobar(Request $request, $id)
     {
         $user = Auth::user();
         
-        if (!$user->isAdmin()) {
+        // Solo super admin y area admin pueden aprobar
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
             abort(403, 'Solo los administradores pueden aprobar comprobantes.');
         }
 
@@ -200,7 +244,12 @@ class ComprobanteController extends Controller
             'mensaje' => 'required|string|min:10',
         ]);
 
-        $comprobante = Comprobante::findOrFail($id);
+        $comprobante = Comprobante::with('user')->findOrFail($id);
+        
+        // Area admin solo puede aprobar comprobantes de su área
+        if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes aprobar comprobantes de tu área.');
+        }
         
         // Cambiar estado
         $comprobante->estado = 'aprobado';
@@ -218,12 +267,13 @@ class ComprobanteController extends Controller
                          ->with('success', 'Comprobante aprobado correctamente.');
     }
 
-    // RECHAZAR COMPROBANTE (solo admin)
+    // RECHAZAR COMPROBANTE (super admin y area admin)
     public function rechazar(Request $request, $id)
     {
         $user = Auth::user();
         
-        if (!$user->isAdmin()) {
+        // Solo super admin y area admin pueden rechazar
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
             abort(403, 'Solo los administradores pueden rechazar comprobantes.');
         }
 
@@ -231,7 +281,12 @@ class ComprobanteController extends Controller
             'mensaje' => 'required|string|min:10',
         ]);
 
-        $comprobante = Comprobante::findOrFail($id);
+        $comprobante = Comprobante::with('user')->findOrFail($id);
+        
+        // Area admin solo puede rechazar comprobantes de su área
+        if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes rechazar comprobantes de tu área.');
+        }
         
         // Cambiar estado
         $comprobante->estado = 'rechazado';
@@ -249,14 +304,24 @@ class ComprobanteController extends Controller
                          ->with('success', 'Comprobante rechazado correctamente.');
     }
 
-    // AGREGAR OBSERVACIÓN (cualquier usuario autenticado)
+    // AGREGAR OBSERVACIÓN (cualquier usuario autenticado con acceso)
     public function agregarObservacion(Request $request, $id)
     {
         $user = Auth::user();
-        $comprobante = Comprobante::findOrFail($id);
+        $comprobante = Comprobante::with('user')->findOrFail($id);
         
-        // Verificar que el usuario tenga acceso al comprobante
-        if (!$user->isAdmin() && $comprobante->user_id !== $user->id) {
+        // Super admin: puede agregar a cualquier comprobante
+        if ($user->isAdmin()) {
+            // Permitir
+        }
+        // Area admin: solo a comprobantes de su área
+        elseif ($user->isAreaAdmin()) {
+            if ($comprobante->user->area_id !== $user->area_id) {
+                abort(403, 'No tienes permisos para agregar observaciones a este comprobante.');
+            }
+        }
+        // Operador: solo a sus propios comprobantes
+        elseif ($comprobante->user_id !== $user->id) {
             abort(403, 'No tienes permisos para agregar observaciones a este comprobante.');
         }
 

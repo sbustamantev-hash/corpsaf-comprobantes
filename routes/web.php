@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ComprobanteController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\AreaController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -33,4 +34,11 @@ Route::middleware('auth')->group(function () {
     Route::post('comprobantes/{id}/rechazar', [ComprobanteController::class, 'rechazar'])->name('comprobantes.rechazar');
     Route::post('comprobantes/{id}/observacion', [ComprobanteController::class, 'agregarObservacion'])->name('comprobantes.observacion');
     Route::get('observaciones/{id}/archivo', [ComprobanteController::class, 'downloadObservacion'])->name('observaciones.download');
+    
+    // RUTAS CRUD DE ÁREAS - Solo super admin
+    Route::resource('areas', AreaController::class);
+    
+    // Rutas para gestionar usuarios de áreas
+    Route::post('areas/{area}/users', [AreaController::class, 'storeUser'])->name('areas.users.store');
+    Route::delete('areas/{area}/users/{user}', [AreaController::class, 'destroyUser'])->name('areas.users.destroy');
 });
