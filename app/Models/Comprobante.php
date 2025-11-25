@@ -13,6 +13,7 @@ class Comprobante extends Model
 
     protected $fillable = [
         'user_id',
+        'anticipo_id',
         'tipo',
         'monto',
         'fecha',
@@ -31,5 +32,10 @@ class Comprobante extends Model
     public function observaciones()
     {
         return $this->hasMany(Observacion::class)->orderBy('created_at', 'asc');
+    }
+
+    public function anticipo()
+    {
+        return $this->belongsTo(Anticipo::class);
     }
 }

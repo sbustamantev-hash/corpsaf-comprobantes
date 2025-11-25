@@ -69,7 +69,13 @@ class AreaController extends Controller
      */
     public function show($id)
     {
-        $area = Area::with(['users', 'comprobantes'])->findOrFail($id);
+        $area = Area::with([
+                    'users.anticipos',
+                    'anticipos.usuario',
+                    'anticipos.banco',
+                    'anticipos.comprobantes',
+                ])->findOrFail($id);
+
         return view('areas.show', compact('area'));
     }
 

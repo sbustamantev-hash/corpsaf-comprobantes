@@ -72,6 +72,7 @@
             <h4 class="text-md font-semibold text-gray-900 mb-4">Nuevo Usuario</h4>
             <form action="{{ route('areas.users.store', $area->id) }}" method="POST">
                 @csrf
+                <input type="hidden" name="form_type" value="create_user">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
@@ -199,7 +200,7 @@
                                     @if(!$user->isAdmin())
                                     <div class="flex items-center space-x-2">
                                         <button onclick="toggleEditForm({{ $user->id }})" 
-                                                class="text-blue-600 hover:text-blue-900" 
+                                                class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition" 
                                                 title="Editar usuario">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -210,7 +211,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" 
-                                                    class="text-red-600 hover:text-red-900" 
+                                                    class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition" 
                                                     title="Eliminar usuario">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -236,6 +237,7 @@
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="user_id" value="{{ $user->id }}">
+                    <input type="hidden" name="form_type" value="edit_user">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
@@ -327,7 +329,7 @@
                 </form>
             </div>
             @endif
-        @endforeach
+
     </div>
 
     <!-- Botón volver -->
@@ -340,27 +342,25 @@
 </div>
 
 <script>
+    function hideAllForms() {
+        document.getElementById('user-form').classList.add('hidden');
+        document.querySelectorAll('[id^="edit-form-"]').forEach(form => form.classList.add('hidden'));
+    }
+
     function toggleUserForm() {
         const form = document.getElementById('user-form');
-        form.classList.toggle('hidden');
-        
-        // Ocultar todos los formularios de edición
-        document.querySelectorAll('[id^="edit-form-"]').forEach(editForm => {
-            editForm.classList.add('hidden');
-        });
+        const isHidden = form.classList.contains('hidden');
+        hideAllForms();
+        if (isHidden) {
+            form.classList.remove('hidden');
+            form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
 
     function toggleEditForm(userId) {
         const editForm = document.getElementById('edit-form-' + userId);
         const isHidden = editForm.classList.contains('hidden');
-        
-        // Ocultar todos los formularios
-        document.querySelectorAll('[id^="edit-form-"]').forEach(form => {
-            form.classList.add('hidden');
-        });
-        document.getElementById('user-form').classList.add('hidden');
-        
-        // Mostrar el formulario seleccionado si estaba oculto
+        hideAllForms();
         if (isHidden) {
             editForm.classList.remove('hidden');
             editForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -370,14 +370,12 @@
     // Mostrar formulario si hay errores de validación
     @if($errors->any())
         @php
-            $userId = old('user_id');
-            $isEdit = old('_method') == 'PUT' && $userId;
+            $formType = old('form_type');
+            $editUserId = old('user_id');
         @endphp
-        @if($isEdit)
-            // Si es edición, mostrar el formulario de edición correspondiente
-            document.getElementById('edit-form-{{ $userId }}')?.classList.remove('hidden');
+        @if($formType === 'edit_user' && $editUserId)
+            document.getElementById('edit-form-{{ $editUserId }}')?.classList.remove('hidden');
         @else
-            // Si es creación, mostrar el formulario de creación
             document.getElementById('user-form')?.classList.remove('hidden');
         @endif
     @endif

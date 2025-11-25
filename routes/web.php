@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ComprobanteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AreaController;
+use App\Http\Controllers\AnticipoController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -42,4 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::post('areas/{area}/users', [AreaController::class, 'storeUser'])->name('areas.users.store');
     Route::put('areas/{area}/users/{user}', [AreaController::class, 'updateUser'])->name('areas.users.update');
     Route::delete('areas/{area}/users/{user}', [AreaController::class, 'destroyUser'])->name('areas.users.destroy');
+
+    // Anticipos
+    Route::get('areas/{area}/users/{user}/anticipos/create', [AnticipoController::class, 'create'])->name('areas.users.anticipos.create');
+    Route::post('areas/{area}/users/{user}/anticipos', [AnticipoController::class, 'store'])->name('areas.users.anticipos.store');
+    Route::post('anticipos/{anticipo}/comprobantes', [AnticipoController::class, 'uploadComprobante'])->name('anticipos.comprobantes.store');
 });

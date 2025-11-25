@@ -33,11 +33,13 @@
                 </a>
                 
                 @if(auth()->user()->isOperador())
+                @if(auth()->user()->isOperador())
                 <a href="{{ route('comprobantes.create') }}" 
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('comprobantes.create') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <i class="fas fa-plus-circle w-5"></i>
                     <span class="font-medium">Nuevo Comprobante</span>
                 </a>
+                @endif
                 @endif
                 
                 @if(auth()->user()->isAdmin())

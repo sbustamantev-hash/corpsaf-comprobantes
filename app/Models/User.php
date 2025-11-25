@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role as RoleEnum;
+use App\Models\Anticipo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -84,6 +85,14 @@ class User extends Authenticatable
     public function comprobantes()
     {
         return $this->hasMany(Comprobante::class);
+    }
+
+    /**
+     * Relación con anticipos asignados
+     */
+    public function anticipos()
+    {
+        return $this->hasMany(Anticipo::class);
     }
 
     /**

@@ -66,4 +66,12 @@ class Area extends Model
     {
         return $query->where('activo', true);
     }
+
+    /**
+     * Relación con anticipos
+     */
+    public function anticipos()
+    {
+        return $this->hasMany(Anticipo::class);
+    }
 }

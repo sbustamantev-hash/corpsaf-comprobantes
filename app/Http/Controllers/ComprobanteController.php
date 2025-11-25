@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Comprobante;
 use App\Models\User;
 use App\Models\Observacion;
+use App\Models\Anticipo;
+use App\Models\TipoComprobante;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +18,10 @@ class ComprobanteController extends Controller
     {
         $user = Auth::user();
         
+        $anticipos = collect();
+        $tiposComprobante = collect();
+        $operadores = collect();
+
         // Super admin: ver todos los comprobantes
         if ($user->isAdmin()) {
             $comprobantes = Comprobante::with('user.area')
@@ -30,6 +36,12 @@ class ComprobanteController extends Controller
                                       })
                                       ->orderBy('id', 'desc')
                                       ->get();
+
+            $operadores = User::where('area_id', $user->area_id)
+                              ->where('id', '!=', $user->id)
+                              ->whereIn('role', ['operador', 'trabajador'])
+                              ->orderBy('name')
+                              ->get();
         }
         // Operador: ver solo sus propios comprobantes
         else {
@@ -37,9 +49,16 @@ class ComprobanteController extends Controller
                                       ->where('user_id', $user->id)
                                       ->orderBy('id', 'desc')
                                       ->get();
+
+            $anticipos = Anticipo::with(['banco', 'creador'])
+                                 ->where('user_id', $user->id)
+                                 ->orderBy('fecha', 'desc')
+                                 ->get();
+
+            $tiposComprobante = TipoComprobante::orderBy('descripcion')->get();
         }
         
-        return view('comprobantes.index', compact('comprobantes'));
+        return view('comprobantes.index', compact('comprobantes', 'anticipos', 'tiposComprobante', 'operadores'));
     }
 
     // FORMULARIO CREAR
