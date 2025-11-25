@@ -60,7 +60,10 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
+                        <p class="text-xs text-gray-500 truncate">DNI: {{ Auth::user()->dni ?? 'N/A' }}</p>
+                        @if(Auth::user()->email)
+                        <p class="text-xs text-gray-400 truncate">{{ Auth::user()->email }}</p>
+                        @endif
                     </div>
                 </div>
                 <div class="mb-2">
@@ -77,7 +80,7 @@
                         @endif
                     @else
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            <i class="fas fa-user mr-1"></i>Operador
+                            <i class="fas fa-user mr-1"></i>Usuario / Trabajador
                         </span>
                         @if(Auth::user()->area)
                         <p class="text-xs text-gray-500 mt-1">{{ Auth::user()->area->nombre }}</p>

@@ -40,5 +40,6 @@ Route::middleware('auth')->group(function () {
     
     // Rutas para gestionar usuarios de áreas
     Route::post('areas/{area}/users', [AreaController::class, 'storeUser'])->name('areas.users.store');
+    Route::put('areas/{area}/users/{user}', [AreaController::class, 'updateUser'])->name('areas.users.update');
     Route::delete('areas/{area}/users/{user}', [AreaController::class, 'destroyUser'])->name('areas.users.destroy');
 });

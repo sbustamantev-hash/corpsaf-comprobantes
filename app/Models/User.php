@@ -22,6 +22,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'dni',
+        'telefono',
         'password',
         'role',
         'area_id',
@@ -59,7 +61,9 @@ class User extends Authenticatable
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
+            'dni' => ['required', 'string', 'max:20', 'unique:users,dni'],
+            'telefono' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', Rule::in(RoleEnum::all())],
             'area_id' => ['nullable', 'exists:areas,id'],

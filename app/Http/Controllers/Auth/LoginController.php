@@ -26,20 +26,25 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|string',
+            'dni' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $dni = $request->input('dni');
+        $password = $request->input('password');
         $remember = $request->filled('remember');
 
-        if (Auth::attempt($credentials, $remember)) {
+        // Buscar usuario por DNI
+        $user = \App\Models\User::where('dni', $dni)->first();
+
+        if ($user && \Illuminate\Support\Facades\Hash::check($password, $user->password)) {
+            Auth::login($user, $remember);
             $request->session()->regenerate();
             return redirect()->intended(route('comprobantes.index'));
         }
 
         throw ValidationException::withMessages([
-            'email' => ['Las credenciales proporcionadas no son correctas.'],
+            'dni' => ['Las credenciales proporcionadas no son correctas.'],
         ]);
     }
 

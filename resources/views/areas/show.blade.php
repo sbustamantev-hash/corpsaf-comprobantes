@@ -86,13 +86,40 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">DNI *</label>
+                        <input type="text" 
+                               name="dni" 
+                               required
+                               maxlength="20"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('dni') border-red-500 @enderror" 
+                               value="{{ old('dni') }}"
+                               placeholder="Ej: 12345678">
+                        @error('dni')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-500">El DNI será usado para iniciar sesión</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email (opcional)</label>
                         <input type="email" 
                                name="email" 
-                               required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('email') border-red-500 @enderror" 
                                value="{{ old('email') }}">
                         @error('email')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono (opcional)</label>
+                        <input type="text" 
+                               name="telefono" 
+                               maxlength="20"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('telefono') border-red-500 @enderror" 
+                               value="{{ old('telefono') }}"
+                               placeholder="Ej: 987654321">
+                        @error('telefono')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -117,7 +144,7 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('role') border-red-500 @enderror">
                             <option value="">Seleccione un rol</option>
                             <option value="area_admin" {{ old('role') == 'area_admin' ? 'selected' : '' }}>Administrador de Área</option>
-                            <option value="operador" {{ old('role') == 'operador' ? 'selected' : '' }}>Operador</option>
+                            <option value="operador" {{ old('role') == 'operador' ? 'selected' : '' }}>Usuario / Trabajador</option>
                         </select>
                         @error('role')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -145,7 +172,9 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">DNI</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teléfono</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rol</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                         </tr>
@@ -154,7 +183,9 @@
                         @foreach($area->users as $user)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $user->dni ?? '-' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->email ?? '-' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->telefono ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                                         @if($user->isAdmin()) bg-red-100 text-red-800
@@ -166,18 +197,25 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     @if(!$user->isAdmin())
-                                    <form action="{{ route('areas.users.destroy', [$area->id, $user->id]) }}" 
-                                          method="POST" 
-                                          class="inline"
-                                          onsubmit="return confirm('¿Estás seguro de eliminar este usuario?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="text-red-600 hover:text-red-900" 
-                                                title="Eliminar usuario">
-                                            <i class="fas fa-trash"></i>
+                                    <div class="flex items-center space-x-2">
+                                        <button onclick="toggleEditForm({{ $user->id }})" 
+                                                class="text-blue-600 hover:text-blue-900" 
+                                                title="Editar usuario">
+                                            <i class="fas fa-edit"></i>
                                         </button>
-                                    </form>
+                                        <form action="{{ route('areas.users.destroy', [$area->id, $user->id]) }}" 
+                                              method="POST" 
+                                              class="inline"
+                                              onsubmit="return confirm('¿Estás seguro de eliminar este usuario?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="text-red-600 hover:text-red-900" 
+                                                    title="Eliminar usuario">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                     @endif
                                 </td>
                             </tr>
@@ -188,6 +226,108 @@
         @else
             <p class="text-gray-500 text-center py-4">No hay usuarios asignados a esta área</p>
         @endif
+
+        <!-- Formularios de edición para cada usuario (ocultos por defecto) -->
+        @foreach($area->users as $user)
+            @if(!$user->isAdmin())
+            <div id="edit-form-{{ $user->id }}" class="hidden mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h4 class="text-md font-semibold text-gray-900 mb-4">Editar Usuario: {{ $user->name }}</h4>
+                <form action="{{ route('areas.users.update', [$area->id, $user->id]) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="user_id" value="{{ $user->id }}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                            <input type="text" 
+                                   name="name" 
+                                   required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('name') border-red-500 @enderror" 
+                                   value="{{ old('name', $user->name) }}">
+                            @error('name')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">DNI *</label>
+                            <input type="text" 
+                                   name="dni" 
+                                   required
+                                   maxlength="20"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('dni') border-red-500 @enderror" 
+                                   value="{{ old('dni', $user->dni) }}">
+                            @error('dni')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email (opcional)</label>
+                            <input type="email" 
+                                   name="email" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('email') border-red-500 @enderror" 
+                                   value="{{ old('email', $user->email) }}">
+                            @error('email')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono (opcional)</label>
+                            <input type="text" 
+                                   name="telefono" 
+                                   maxlength="20"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('telefono') border-red-500 @enderror" 
+                                   value="{{ old('telefono', $user->telefono) }}">
+                            @error('telefono')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nueva Contraseña (opcional)</label>
+                            <input type="password" 
+                                   name="password" 
+                                   minlength="8"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('password') border-red-500 @enderror"
+                                   placeholder="Dejar vacío para mantener la actual">
+                            @error('password')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            <p class="mt-1 text-xs text-gray-500">Dejar vacío si no deseas cambiar la contraseña</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Rol *</label>
+                            <select name="role" 
+                                    required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('role') border-red-500 @enderror">
+                                <option value="">Seleccione un rol</option>
+                                <option value="area_admin" {{ old('role', $user->role) == 'area_admin' ? 'selected' : '' }}>Administrador de Área</option>
+                                <option value="operador" {{ old('role', $user->role) == 'operador' ? 'selected' : '' }}>Usuario / Trabajador</option>
+                            </select>
+                            @error('role')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-end space-x-3">
+                        <button type="button" 
+                                onclick="toggleEditForm({{ $user->id }})"
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-save mr-2"></i>Actualizar Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+            @endif
+        @endforeach
     </div>
 
     <!-- Botón volver -->
@@ -203,11 +343,43 @@
     function toggleUserForm() {
         const form = document.getElementById('user-form');
         form.classList.toggle('hidden');
+        
+        // Ocultar todos los formularios de edición
+        document.querySelectorAll('[id^="edit-form-"]').forEach(editForm => {
+            editForm.classList.add('hidden');
+        });
+    }
+
+    function toggleEditForm(userId) {
+        const editForm = document.getElementById('edit-form-' + userId);
+        const isHidden = editForm.classList.contains('hidden');
+        
+        // Ocultar todos los formularios
+        document.querySelectorAll('[id^="edit-form-"]').forEach(form => {
+            form.classList.add('hidden');
+        });
+        document.getElementById('user-form').classList.add('hidden');
+        
+        // Mostrar el formulario seleccionado si estaba oculto
+        if (isHidden) {
+            editForm.classList.remove('hidden');
+            editForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
 
     // Mostrar formulario si hay errores de validación
     @if($errors->any())
-        document.getElementById('user-form').classList.remove('hidden');
+        @php
+            $userId = old('user_id');
+            $isEdit = old('_method') == 'PUT' && $userId;
+        @endphp
+        @if($isEdit)
+            // Si es edición, mostrar el formulario de edición correspondiente
+            document.getElementById('edit-form-{{ $userId }}')?.classList.remove('hidden');
+        @else
+            // Si es creación, mostrar el formulario de creación
+            document.getElementById('user-form')?.classList.remove('hidden');
+        @endif
     @endif
 </script>
 @endsection

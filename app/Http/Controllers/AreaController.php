@@ -82,18 +82,22 @@ class AreaController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'dni' => 'required|string|max:20|unique:users,dni',
+            'email' => 'nullable|string|email|max:255|unique:users,email',
+            'telefono' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
             'role' => ['required', 'string', function ($attribute, $value, $fail) {
                 if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
-                    $fail('El rol debe ser Administrador de Área u Operador.');
+                    $fail('El rol debe ser Administrador de Área o Usuario/Trabajador.');
                 }
             }],
         ]);
 
         User::create([
             'name' => $request->name,
+            'dni' => $request->dni,
             'email' => $request->email,
+            'telefono' => $request->telefono,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'area_id' => $area->id,
@@ -154,6 +158,58 @@ class AreaController extends Controller
 
         return redirect()->route('areas.index')
                          ->with('success', 'Área eliminada correctamente.');
+    }
+
+    /**
+     * Actualizar usuario del área
+     */
+    public function updateUser(Request $request, $area, $user)
+    {
+        $area = Area::findOrFail($area);
+        $user = User::findOrFail($user);
+
+        // Verificar que el usuario pertenece al área
+        if ($user->area_id !== $area->id) {
+            return redirect()->route('areas.show', $area->id)
+                           ->with('error', 'El usuario no pertenece a esta área.');
+        }
+
+        // No permitir editar super admin
+        if ($user->isAdmin()) {
+            return redirect()->route('areas.show', $area->id)
+                           ->with('error', 'No se puede editar un super administrador.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'dni' => 'required|string|max:20|unique:users,dni,' . $user->id,
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
+            'telefono' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:8',
+            'role' => ['required', 'string', function ($attribute, $value, $fail) {
+                if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
+                    $fail('El rol debe ser Administrador de Área o Usuario/Trabajador.');
+                }
+            }],
+        ]);
+
+        $userData = [
+            'name' => $request->name,
+            'dni' => $request->dni,
+            'email' => $request->email,
+            'telefono' => $request->telefono,
+            'role' => $request->role,
+        ];
+
+        // Solo actualizar contraseña si se proporciona
+        if ($request->filled('password')) {
+            $userData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($userData);
+
+        return redirect()->route('areas.show', $area->id)
+                         ->with('success', 'Usuario actualizado correctamente.');
     }
 
     /**

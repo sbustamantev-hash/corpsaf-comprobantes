@@ -129,8 +129,8 @@ class Role
         return match($role) {
             self::ADMIN => 'Super Administrador',
             self::AREA_ADMIN => 'Administrador de Área',
-            self::OPERADOR => 'Operador',
-            self::TRABAJADOR => 'Operador',
+            self::OPERADOR => 'Usuario / Trabajador',
+            self::TRABAJADOR => 'Usuario / Trabajador',
             default => 'Desconocido',
         };
     }

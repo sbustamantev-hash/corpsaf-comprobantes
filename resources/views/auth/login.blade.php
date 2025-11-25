@@ -36,18 +36,18 @@
             @csrf
 
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-user mr-2 text-gray-400"></i>Usuario (DNI o Email)
+                <label for="dni" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-id-card mr-2 text-gray-400"></i>DNI
                 </label>
                 <input type="text" 
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('email') border-red-500 @enderror" 
-                       id="email" 
-                       name="email" 
-                       value="{{ old('email') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('dni') border-red-500 @enderror" 
+                       id="dni" 
+                       name="dni" 
+                       value="{{ old('dni') }}" 
                        required 
                        autofocus
-                       placeholder="Ingresa tu DNI o email">
-                @error('email')
+                       placeholder="Ingresa tu DNI">
+                @error('dni')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -87,7 +87,7 @@
                 <p class="text-xs text-gray-600 text-center">
                     <i class="fas fa-info-circle mr-1"></i>
                     <strong>Credenciales de prueba:</strong><br>
-                    Usa tu DNI como usuario y contraseña, o <strong>admin/admin</strong> para administrador
+                    Usa tu DNI como usuario y contraseña, o <strong>00000000/admin</strong> para super administrador
                 </p>
             </div>
         </div>
