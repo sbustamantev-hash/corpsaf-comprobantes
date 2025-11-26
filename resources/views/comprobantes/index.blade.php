@@ -537,21 +537,19 @@
         </div>
     </div>
     @elseif(!Auth::user()->isOperador())
-    <!-- Comprobantes Table (solo para Area Admin) -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Comprobantes Registrados</h3>
-                <div class="flex items-center space-x-4">
-                    <div class="relative">
-                        <input type="text" 
-                               placeholder="Buscar comprobantes..." 
-                               class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <!-- Comprobantes Table (solo para Area Admin) -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Comprobantes Registrados</h3>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" 
+                                   placeholder="Buscar comprobantes..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
                 </div>
             </div>
 
