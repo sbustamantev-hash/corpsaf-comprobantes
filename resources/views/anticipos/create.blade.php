@@ -69,11 +69,10 @@
 
                         <select name="tipo_rendicion_id"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-                            @foreach ($Rendicion as $tiporendicion)
+                            <option value="">Seleccione un tipo de rendición</option>
+                            @foreach ($tipos_rendicion as $tiporendicion)
                                 <option value="{{ $tiporendicion->id }}">{{ $tiporendicion->descripcion }}</option>
                             @endforeach
-
                         </select>
                         @error('tipo_rendicion_id')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

@@ -41,7 +41,7 @@
                     <a href="{{ route('areas.index') }}" 
                        class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('areas.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                         <i class="fas fa-building w-5"></i>
-                        <span class="font-medium">Áreas/Empresas</span>
+                        <span class="font-medium">Empresas</span>
                     </a>
                     <a href="{{ route('tipos-comprobante.index') }}" 
                        class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('tipos-comprobante.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">

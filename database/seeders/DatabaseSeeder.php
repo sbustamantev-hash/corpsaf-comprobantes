@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             TipoDocumentoSeeder::class,
             BancoSeeder::class,
             TipoComprobanteSeeder::class,
+            TipoRendicionSeeder::class,
             AreaSeeder::class,
             UserSeeder::class,
         ]);

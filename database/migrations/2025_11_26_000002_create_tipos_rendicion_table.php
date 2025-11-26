@@ -11,8 +11,11 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('tipos_rendicion', function (Blueprint $table) {
-
-            $table->string('name');
+            $table->id();
+            $table->string('codigo', 20)->unique();
+            $table->string('descripcion');
+            $table->boolean('activo')->default(true);
+            $table->timestamps();
         });
     }
 

@@ -498,8 +498,8 @@
                         <i class="fas fa-building text-blue-600"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="font-medium text-gray-900">Gestionar Áreas/Empresas</p>
-                        <p class="text-sm text-gray-500">Administra las áreas y empresas del sistema</p>
+                        <p class="font-medium text-gray-900">Gestionar Empresas</p>
+                        <p class="text-sm text-gray-500">Administra las empresas del sistema</p>
                     </div>
                     <i class="fas fa-chevron-right text-gray-400"></i>
                 </a>
