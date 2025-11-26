@@ -98,7 +98,7 @@
 
                     <div id="field-importe">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Importe (S/.) *</label>
-                        <input type="number" step="0.01" name="importe" value="{{ old('importe') }}" required
+                        <input type="number" step="0.01" name="importe" id="input-importe" value="{{ old('importe') }}" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('importe') border-red-500 @enderror">
                         @error('importe')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -134,34 +134,37 @@
         document.addEventListener('DOMContentLoaded', function () {
             const tipoRadios = document.querySelectorAll('input[name="tipo"]');
             const fieldBanco = document.getElementById('field-banco');
-            const fieldTipoRendicion = document.getElementById('field-TipoRendicion');
-            const fieldImporte = document.getElementById('field-importe');
             const fieldTipoRendicion = document.getElementById('field-tipo-rendicion');
-            const inputImporte = fieldImporte.querySelector('input');
+            const inputImporte = document.getElementById('input-importe');
             const btnSubmit = document.getElementById('btn-submit');
 
             function toggleFields() {
                 const tipo = document.querySelector('input[name="tipo"]:checked').value;
                 if (tipo === 'reembolso') {
+                    // Para reembolso: ocultar banco y tipo rendición, bloquear importe
                     fieldBanco.style.display = 'none';
                     fieldTipoRendicion.style.display = 'none';
-                    fieldImporte.style.display = 'none';
-                    fieldTipoRendicion.style.display = 'none';
+                    inputImporte.readOnly = true;
                     inputImporte.required = false;
+                    inputImporte.value = '';
+                    inputImporte.classList.add('bg-gray-100', 'cursor-not-allowed');
+                    inputImporte.classList.remove('focus:ring-2', 'focus:ring-blue-500');
                     btnSubmit.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Registrar Reembolso';
                 } else {
+                    // Para anticipo: mostrar todos los campos, habilitar importe
                     fieldBanco.style.display = 'block';
                     fieldTipoRendicion.style.display = 'block';
-                    fieldImporte.style.display = 'block';
-                    fieldTipoRendicion.style.display = 'block';
+                    inputImporte.readOnly = false;
                     inputImporte.required = true;
+                    inputImporte.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                    inputImporte.classList.add('focus:ring-2', 'focus:ring-blue-500');
                     btnSubmit.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Registrar Anticipo';
                 }
             }
 
             tipoRadios.forEach(radio => radio.addEventListener('change', toggleFields));
 
-            // Run on load to set initial state
+            // Ejecutar al cargar para establecer el estado inicial
             toggleFields();
         });
     </script>
