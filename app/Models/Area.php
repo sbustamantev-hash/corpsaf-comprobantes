@@ -29,7 +29,7 @@ class Area extends Model
     }
 
     /**
-     * Obtener usuarios administradores del área
+     * Obtener usuarios administradores del Empresa
      */
     public function administradores()
     {
@@ -37,7 +37,7 @@ class Area extends Model
     }
 
     /**
-     * Obtener operadores del área
+     * Obtener operadores del Empresa
      */
     public function operadores()
     {
@@ -60,7 +60,7 @@ class Area extends Model
     }
 
     /**
-     * Scope para áreas activas
+     * Scope para Empresas activas
      */
     public function scopeActivas($query)
     {

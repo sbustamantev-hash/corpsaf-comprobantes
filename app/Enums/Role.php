@@ -13,23 +13,23 @@ class Role
      * Super Administrador (Super Root)
      * 
      * Permisos:
-     * - Crear y gestionar áreas/empresas (CRUD completo)
+     * - Crear y gestionar Empresa (CRUD completo)
      * - Crear y gestionar usuarios y perfiles (CRUD completo)
-     * - Ver todos los comprobantes de todas las áreas
+     * - Ver todos los comprobantes de todas las Empresas
      * - Acceso total al sistema
      */
     public const ADMIN = 'admin';
 
     /**
-     * Administrador de Área/Empresa
+     * Administrador de Empresa
      * 
      * Permisos:
-     * - Ver comprobantes solo de su área
-     * - Aprobar/Rechazar comprobantes de su área
-     * - Agregar observaciones a comprobantes de su área
+     * - Ver comprobantes solo de su Empresa
+     * - Aprobar/Rechazar comprobantes de su Empresa
+     * - Agregar observaciones a comprobantes de su Empresa
      * - NO puede crear comprobantes
      * - NO puede editar comprobantes
-     * - NO puede gestionar áreas ni usuarios
+     * - NO puede gestionar Empresas ni usuarios
      */
     public const AREA_ADMIN = 'area_admin';
 
@@ -97,7 +97,7 @@ class Role
     }
 
     /**
-     * Verificar si un rol es administrador de área
+     * Verificar si un rol es administrador de Empresa
      * 
      * @param string $role
      * @return bool
@@ -126,9 +126,9 @@ class Role
      */
     public static function label(string $role): string
     {
-        return match($role) {
+        return match ($role) {
             self::ADMIN => 'Super Administrador',
-            self::AREA_ADMIN => 'Administrador de Área',
+            self::AREA_ADMIN => 'Administrador de Empresa',
             self::OPERADOR => 'Usuario / Trabajador',
             self::TRABAJADOR => 'Usuario / Trabajador',
             default => 'Desconocido',

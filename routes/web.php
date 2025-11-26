@@ -41,21 +41,21 @@ RUTAS CRUD DE COMPROBANTES - Requieren autenticación
 Route::middleware('auth')->group(function () {
     Route::resource('comprobantes', ComprobanteController::class);
     Route::get('comprobantes/{id}/archivo', [ComprobanteController::class, 'download'])->name('comprobantes.download');
-    
+
     // Rutas para aprobar/rechazar y observaciones
     Route::post('comprobantes/{id}/aprobar', [ComprobanteController::class, 'aprobar'])->name('comprobantes.aprobar');
     Route::post('comprobantes/{id}/rechazar', [ComprobanteController::class, 'rechazar'])->name('comprobantes.rechazar');
     Route::post('comprobantes/{id}/observacion', [ComprobanteController::class, 'agregarObservacion'])->name('comprobantes.observacion');
     Route::get('observaciones/{id}/archivo', [ComprobanteController::class, 'downloadObservacion'])->name('observaciones.download');
-    
-    // RUTAS CRUD DE ÁREAS - Solo super admin
+
+    // RUTAS CRUD DE EmpresaS - Solo super admin
     Route::resource('areas', AreaController::class);
-    
-    // Rutas para gestionar usuarios de áreas
+
+    // Rutas para gestionar usuarios de Empresas
     Route::post('areas/{area}/users', [AreaController::class, 'storeUser'])->name('areas.users.store');
     Route::put('areas/{area}/users/{user}', [AreaController::class, 'updateUser'])->name('areas.users.update');
     Route::delete('areas/{area}/users/{user}', [AreaController::class, 'destroyUser'])->name('areas.users.destroy');
-    
+
     // RUTAS CRUD DE USUARIOS - Admin y Area Admin
     Route::resource('users', UserController::class);
     
@@ -69,7 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::get('areas/{area}/users/{user}/anticipos/create', [AnticipoController::class, 'create'])->name('areas.users.anticipos.create');
     Route::post('areas/{area}/users/{user}/anticipos', [AnticipoController::class, 'store'])->name('areas.users.anticipos.store');
     Route::post('anticipos/{anticipo}/comprobantes', [AnticipoController::class, 'uploadComprobante'])->name('anticipos.comprobantes.store');
-    
+
     // Rutas para ver, aprobar/rechazar y exportar anticipos
     Route::get('anticipos/{anticipo}', [AnticipoController::class, 'show'])->name('anticipos.show');
     Route::post('anticipos/{anticipo}/aprobar', [AnticipoController::class, 'aprobar'])->name('anticipos.aprobar');

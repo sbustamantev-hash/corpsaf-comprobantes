@@ -72,7 +72,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Relación con área
+     * Relación con Empresa
      */
     public function area()
     {
@@ -106,7 +106,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Verificar si es administrador de área
+     * Verificar si es administrador de Empresa
      * 
      * @return bool
      */
@@ -126,7 +126,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Verificar si puede gestionar áreas (solo super admin)
+     * Verificar si puede gestionar Empresas (solo super admin)
      * 
      * @return bool
      */
@@ -146,7 +146,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Verificar si puede ver comprobantes de un área específica
+     * Verificar si puede ver comprobantes de un Empresa específica
      * 
      * @param int|null $areaId
      * @return bool
@@ -158,7 +158,7 @@ class User extends Authenticatable
             return true;
         }
 
-        // Area admin solo puede ver su área
+        // Area admin solo puede ver su Empresa
         if ($this->isAreaAdmin()) {
             return $this->area_id === $areaId;
         }

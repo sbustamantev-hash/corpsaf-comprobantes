@@ -14,18 +14,18 @@ class AreaController extends Controller
     /**
      * Verificar que solo el super admin puede acceder
      */
-    public function __construct()
+    public function __constTipoRendiciont()
     {
         $this->middleware(function ($request, $next) {
             if (!Auth::user()->isAdmin()) {
-                abort(403, 'Solo el super administrador puede gestionar áreas.');
+                abort(403, 'Solo el super administrador puede gestionar Empresas.');
             }
             return $next($request);
         });
     }
 
     /**
-     * Listar todas las áreas
+     * Listar todas las Empresas
      */
     public function index()
     {
@@ -42,7 +42,7 @@ class AreaController extends Controller
     }
 
     /**
-     * Guardar nueva área
+     * Guardar nueva Empresa
      */
     public function store(Request $request)
     {
@@ -61,26 +61,26 @@ class AreaController extends Controller
         ]);
 
         return redirect()->route('areas.index')
-                         ->with('success', 'Área creada correctamente.');
+            ->with('success', 'Empresa creada correctamente.');
     }
 
     /**
-     * Mostrar detalles de un área
+     * Mostrar detalles de un Empresa
      */
     public function show($id)
     {
         $area = Area::with([
-                    'users.anticipos',
-                    'anticipos.usuario',
-                    'anticipos.banco',
-                    'anticipos.comprobantes',
-                ])->findOrFail($id);
+            'users.anticipos',
+            'anticipos.usuario',
+            'anticipos.banco',
+            'anticipos.comprobantes',
+        ])->findOrFail($id);
 
         return view('areas.show', compact('area'));
     }
 
     /**
-     * Crear usuario para el área
+     * Crear usuario para el Empresa
      */
     public function storeUser(Request $request, $area)
     {
@@ -92,11 +92,15 @@ class AreaController extends Controller
             'email' => 'nullable|string|email|max:255|unique:users,email',
             'telefono' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
-            'role' => ['required', 'string', function ($attribute, $value, $fail) {
-                if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
-                    $fail('El rol debe ser Administrador de Área o Usuario/Trabajador.');
+            'role' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
+                        $fail('El rol debe ser Administrador de Empresa o Usuario/Trabajador.');
+                    }
                 }
-            }],
+            ],
         ]);
 
         User::create([
@@ -110,7 +114,7 @@ class AreaController extends Controller
         ]);
 
         return redirect()->route('areas.show', $area->id)
-                         ->with('success', 'Usuario creado correctamente.');
+            ->with('success', 'Usuario creado correctamente.');
     }
 
     /**
@@ -123,7 +127,7 @@ class AreaController extends Controller
     }
 
     /**
-     * Actualizar área
+     * Actualizar Empresa
      */
     public function update(Request $request, $id)
     {
@@ -144,11 +148,11 @@ class AreaController extends Controller
         ]);
 
         return redirect()->route('areas.index')
-                         ->with('success', 'Área actualizada correctamente.');
+            ->with('success', 'Empresa actualizada correctamente.');
     }
 
     /**
-     * Eliminar área
+     * Eliminar Empresa
      */
     public function destroy($id)
     {
@@ -157,33 +161,33 @@ class AreaController extends Controller
         // Verificar si tiene usuarios asociados
         if ($area->users()->count() > 0) {
             return redirect()->route('areas.index')
-                           ->with('error', 'No se puede eliminar el área porque tiene usuarios asociados.');
+                ->with('error', 'No se puede eliminar el Empresa porque tiene usuarios asociados.');
         }
 
         $area->delete();
 
         return redirect()->route('areas.index')
-                         ->with('success', 'Área eliminada correctamente.');
+            ->with('success', 'Empresa eliminada correctamente.');
     }
 
     /**
-     * Actualizar usuario del área
+     * Actualizar usuario del Empresa
      */
     public function updateUser(Request $request, $area, $user)
     {
         $area = Area::findOrFail($area);
         $user = User::findOrFail($user);
 
-        // Verificar que el usuario pertenece al área
+        // Verificar que el usuario pertenece al Empresa
         if ($user->area_id !== $area->id) {
             return redirect()->route('areas.show', $area->id)
-                           ->with('error', 'El usuario no pertenece a esta área.');
+                ->with('error', 'El usuario no pertenece a esta Empresa.');
         }
 
         // No permitir editar super admin
         if ($user->isAdmin()) {
             return redirect()->route('areas.show', $area->id)
-                           ->with('error', 'No se puede editar un super administrador.');
+                ->with('error', 'No se puede editar un super administrador.');
         }
 
         $request->validate([
@@ -192,11 +196,15 @@ class AreaController extends Controller
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'telefono' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:8',
-            'role' => ['required', 'string', function ($attribute, $value, $fail) {
-                if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
-                    $fail('El rol debe ser Administrador de Área o Usuario/Trabajador.');
+            'role' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
+                        $fail('El rol debe ser Administrador de Empresa o Usuario/Trabajador.');
+                    }
                 }
-            }],
+            ],
         ]);
 
         $userData = [
@@ -215,32 +223,32 @@ class AreaController extends Controller
         $user->update($userData);
 
         return redirect()->route('areas.show', $area->id)
-                         ->with('success', 'Usuario actualizado correctamente.');
+            ->with('success', 'Usuario actualizado correctamente.');
     }
 
     /**
-     * Eliminar usuario del área
+     * Eliminar usuario del Empresa
      */
     public function destroyUser($area, $user)
     {
         $area = Area::findOrFail($area);
         $user = User::findOrFail($user);
 
-        // Verificar que el usuario pertenece al área
+        // Verificar que el usuario pertenece al Empresa
         if ($user->area_id !== $area->id) {
             return redirect()->route('areas.show', $area->id)
-                           ->with('error', 'El usuario no pertenece a esta área.');
+                ->with('error', 'El usuario no pertenece a esta Empresa.');
         }
 
         // No permitir eliminar super admin
         if ($user->isAdmin()) {
             return redirect()->route('areas.show', $area->id)
-                           ->with('error', 'No se puede eliminar un super administrador.');
+                ->with('error', 'No se puede eliminar un super administrador.');
         }
 
         $user->delete();
 
         return redirect()->route('areas.show', $area->id)
-                         ->with('success', 'Usuario eliminado correctamente.');
+            ->with('success', 'Usuario eliminado correctamente.');
     }
 }

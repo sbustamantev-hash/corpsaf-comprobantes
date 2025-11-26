@@ -1,6 +1,6 @@
-# Estructura de Base de Datos - CorpSAF Comprobantes
+# EstTipoRendiciontura de Base de Datos - CorpSAF Comprobantes
 
-Este documento describe la estructura completa de las tablas de la base de datos del sistema.
+Este documento describe la estTipoRendiciontura completa de las tablas de la base de datos del sistema.
 
 ---
 
