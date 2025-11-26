@@ -485,7 +485,6 @@
         </div>
     @endif
 
-<<<<<<< HEAD
     @if(Auth::user()->isAdmin())
     <!-- Vista para Super Admin - Información General -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
