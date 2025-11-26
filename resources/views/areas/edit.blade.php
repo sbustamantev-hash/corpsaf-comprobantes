@@ -24,11 +24,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">TipoRendicion-SUNAT</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC</label>
                         <input type="text" 
                                name="codigo" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('codigo') border-red-500 @enderror" 
-                               value="{{ old('codigo', $area->codigo) }}">
+                               value="{{ old('codigo', $area->codigo) }}"
+                               placeholder="Ej: 20123456789">
                         @error('codigo')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -37,10 +38,11 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Responsable</label>
                         <input type="text" 
-                               name="codigo" 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('codigo') border-red-500 @enderror" 
-                               value="{{ old('codigo', $area->codigo) }}">
-                        @error('codigo')
+                               name="descripcion" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('descripcion') border-red-500 @enderror"
+                               value="{{ old('descripcion', $area->descripcion) }}"
+                               placeholder="Nombre del responsable">
+                        @error('descripcion')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

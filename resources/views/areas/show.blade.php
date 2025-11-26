@@ -28,7 +28,7 @@
 
             <div class="grid grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Código</label>
+                    <label class="block text-sm font-medium text-gray-500 mb-1">RUC</label>
                     <p class="text-gray-900">{{ $area->codigo ?? '-' }}</p>
                 </div>
                 <div>

@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TipoComprobanteController;
 use App\Http\Controllers\BancoController;
 use App\Http\Controllers\SistemaController;
+use App\Http\Controllers\ConfiguracionController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -64,6 +65,10 @@ Route::middleware('auth')->group(function () {
     
     // RUTAS CRUD DE BANCOS - Solo super admin
     Route::resource('bancos', BancoController::class);
+    
+    // RUTAS DE CONFIGURACIONES - Solo super admin
+    Route::get('configuraciones', [ConfiguracionController::class, 'index'])->name('configuraciones.index');
+    Route::put('configuraciones', [ConfiguracionController::class, 'update'])->name('configuraciones.update');
 
     // Anticipos
     Route::get('areas/{area}/users/{user}/anticipos/create', [AnticipoController::class, 'create'])->name('areas.users.anticipos.create');

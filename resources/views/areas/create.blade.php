@@ -24,24 +24,25 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">TipoRendicionSUNAT</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC</label>
                         <input type="text" 
                                name="codigo" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('codigo') border-red-500 @enderror" 
                                value="{{ old('codigo') }}" 
-                               placeholder="Ej: Empresa, EMP-ABC">
+                               placeholder="Ej: 20123456789">
                         @error('codigo')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        <p class="mt-1 text-xs text-gray-500">Código único para identificar el Empresa</p>
+                        <p class="mt-1 text-xs text-gray-500">RUC de la empresa</p>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Responsable</label>
-                        <textarea name="descripcion" 
-                                  rows="4"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('descripcion') border-red-500 @enderror"
-                                  placeholder="Descripción del Empresa o Empresa...">{{ old('descripcion') }}</textarea>
+                        <input type="text" 
+                               name="descripcion" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('descripcion') border-red-500 @enderror"
+                               value="{{ old('descripcion') }}"
+                               placeholder="Nombre del responsable">
                         @error('descripcion')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

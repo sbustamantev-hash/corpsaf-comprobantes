@@ -53,6 +53,11 @@
                         <i class="fas fa-university w-5"></i>
                         <span class="font-medium">Bancos</span>
                     </a>
+                    <a href="{{ route('configuraciones.index') }}" 
+                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('configuraciones.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="fas fa-cog w-5"></i>
+                        <span class="font-medium">Configuraciones</span>
+                    </a>
                     @endif
                     <a href="{{ route('users.index') }}" 
                        class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">

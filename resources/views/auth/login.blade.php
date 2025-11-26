@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión | YnnovaCorp Comprobantes</title>
+    <title>Iniciar Sesión | {{ $nombreApp ?? 'YnnovaCorp' }} Comprobantes</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -14,9 +14,15 @@
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4">
-                <i class="fas fa-file-invoice-dollar text-white text-3xl"></i>
+                @if(isset($logoPath) && $logoPath)
+                    <img src="{{ asset('storage/' . $logoPath) }}" 
+                         alt="Logo" 
+                         class="w-full h-full object-contain rounded-xl">
+                @else
+                    <i class="fas fa-file-invoice-dollar text-white text-3xl"></i>
+                @endif
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">YnnovaCorp</h1>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $nombreApp ?? 'YnnovaCorp' }}</h1>
             <p class="text-gray-600">Liquidacion de gastos</p>
             <p class="text-sm text-gray-500 mt-2">Inicia sesión para continuar</p>
         </div>
