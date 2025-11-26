@@ -122,7 +122,8 @@ class ComprobanteController extends Controller
             'monto' => 'required|numeric',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
-            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            // Máximo 100 MB (100 * 1024 KB)
+            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:102400',
             'anticipo_id' => 'nullable|exists:anticipos,id'
         ]);
 

@@ -21,6 +21,20 @@
             @endif
 
             <div class="space-y-6">
+                @php
+                    $empresa = Auth::user()->area;
+                @endphp
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">RUC de la Empresa</label>
+                    <input type="text"
+                           name="ruc_empresa"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           value="{{ $empresa->codigo ?? '' }}"
+                           readonly>
+                    <p class="mt-1 text-xs text-gray-500">Corresponde a la empresa a la que perteneces.</p>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante</label>
                     <select name="tipo"
