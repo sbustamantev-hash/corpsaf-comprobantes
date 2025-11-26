@@ -16,19 +16,20 @@ class AnticipoController extends Controller
         $admin = Auth::user();
 
         if (!$admin->isAreaAdmin()) {
-            abort(403, 'Solo los administradores de área pueden crear anticipos.');
+            abort(403, 'Solo los administradores de Empresa pueden crear anticipos.');
         }
 
         $area = Area::with('users')->findOrFail($areaId);
         $user = User::findOrFail($userId);
 
         if ($admin->area_id !== $area->id || $user->area_id !== $area->id) {
-            abort(403, 'Solo puedes gestionar anticipos de tu área.');
+            abort(403, 'Solo puedes gestionar anticipos de tu Empresa.');
         }
 
         $bancos = \App\Models\Banco::orderBy('descripcion')->get();
+        $tipos_rendicion = \App\Models\TipoRendicion::orderBy('descripcion')->get();
 
-        return view('anticipos.create', compact('area', 'user', 'bancos'));
+        return view('anticipos.create', compact('area', 'user', 'bancos', 'tipos_rendicion'));
     }
 
     /**
@@ -39,28 +40,29 @@ class AnticipoController extends Controller
         $admin = Auth::user();
 
         if (!$admin->isAreaAdmin()) {
-            abort(403, 'Solo los administradores de área pueden crear anticipos.');
+            abort(403, 'Solo los administradores de Empresa pueden crear anticipos.');
         }
 
         $area = Area::findOrFail($areaId);
         $user = User::findOrFail($userId);
 
         if ($admin->area_id !== $area->id) {
-            abort(403, 'Solo puedes gestionar anticipos de tu área.');
+            abort(403, 'Solo puedes gestionar anticipos de tu Empresa.');
         }
 
         if ($user->area_id !== $area->id) {
             return redirect()->route('areas.show', $area->id)
-                             ->with('error', 'El usuario no pertenece a esta área.');
+                ->with('error', 'El usuario no pertenece a esta Empresa.');
         }
 
         $request->validate([
             'tipo' => 'required|in:anticipo,reembolso',
             'fecha' => 'required|date',
             'banco_id' => 'nullable|exists:bancos,id',
-            'ruc' => 'nullable|string|max:20',
-            'importe' => 'required|numeric|min:0.01',
+            'TipoRendicion' => 'nullable|string|max:20',
+            'importe' => 'required_if:tipo,anticipo|nullable|numeric|min:0',
             'descripcion' => 'nullable|string',
+            'tipo_rendicion_id' => 'nullable|exists:tipos_rendicion,id',
         ]);
 
         Anticipo::create([
@@ -70,14 +72,15 @@ class AnticipoController extends Controller
             'tipo' => $request->tipo,
             'fecha' => $request->fecha,
             'banco_id' => $request->banco_id,
-            'ruc' => $request->ruc,
-            'importe' => $request->importe,
+            'TipoRendicion' => $request->TipoRendicion,
+            'importe' => $request->tipo === 'reembolso' ? null : $request->importe,
             'descripcion' => $request->descripcion,
             'estado' => 'pendiente',
+            'tipo_rendicion_id' => $request->tipo_rendicion_id,
         ]);
 
         return redirect()->route('comprobantes.index')
-                         ->with('success', 'Anticipo registrado correctamente.');
+            ->with('success', 'Anticipo registrado correctamente.');
     }
 
     /**
@@ -171,7 +174,7 @@ class AnticipoController extends Controller
     public function aprobar(Request $request, $id)
     {
         $user = Auth::user();
-        
+
         // Solo super admin y area admin pueden aprobar
         if (!$user->isAdmin() && !$user->isAreaAdmin()) {
             abort(403, 'Solo los administradores pueden aprobar anticipos.');
@@ -182,18 +185,18 @@ class AnticipoController extends Controller
         ]);
 
         $anticipo = Anticipo::with('area')->findOrFail($id);
-        
-        // Area admin solo puede aprobar anticipos de su área
+
+        // Area admin solo puede aprobar anticipos de su Empresa
         if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
-            abort(403, 'Solo puedes aprobar anticipos de tu área.');
+            abort(403, 'Solo puedes aprobar anticipos de tu Empresa.');
         }
-        
+
         // Cambiar estado
         $anticipo->estado = 'aprobado';
         $anticipo->save();
 
         return redirect()->route('anticipos.show', $anticipo->id)
-                         ->with('success', 'Anticipo aprobado correctamente.');
+            ->with('success', 'Anticipo aprobado correctamente.');
     }
 
     /**
@@ -202,7 +205,7 @@ class AnticipoController extends Controller
     public function rechazar(Request $request, $id)
     {
         $user = Auth::user();
-        
+
         // Solo super admin y area admin pueden rechazar
         if (!$user->isAdmin() && !$user->isAreaAdmin()) {
             abort(403, 'Solo los administradores pueden rechazar anticipos.');
@@ -213,18 +216,18 @@ class AnticipoController extends Controller
         ]);
 
         $anticipo = Anticipo::with('area')->findOrFail($id);
-        
-        // Area admin solo puede rechazar anticipos de su área
+
+        // Area admin solo puede rechazar anticipos de su Empresa
         if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
-            abort(403, 'Solo puedes rechazar anticipos de tu área.');
+            abort(403, 'Solo puedes rechazar anticipos de tu Empresa.');
         }
-        
+
         // Cambiar estado
         $anticipo->estado = 'rechazado';
         $anticipo->save();
 
         return redirect()->route('anticipos.show', $anticipo->id)
-                         ->with('success', 'Anticipo rechazado correctamente.');
+            ->with('success', 'Anticipo rechazado correctamente.');
     }
 
     /**
@@ -234,7 +237,7 @@ class AnticipoController extends Controller
     {
         // TODO: Implementar exportación a PDF cuando se pase el formato
         $anticipo = Anticipo::with(['usuario', 'area', 'banco', 'comprobantes'])->findOrFail($id);
-        
+
         return response()->json([
             'message' => 'Exportación a PDF pendiente de implementar',
             'anticipo' => $anticipo
@@ -248,7 +251,7 @@ class AnticipoController extends Controller
     {
         // TODO: Implementar exportación a Excel cuando se pase el formato
         $anticipo = Anticipo::with(['usuario', 'area', 'banco', 'comprobantes'])->findOrFail($id);
-        
+
         return response()->json([
             'message' => 'Exportación a Excel pendiente de implementar',
             'anticipo' => $anticipo

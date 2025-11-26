@@ -15,12 +15,12 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Obtener áreas
+        // Obtener Empresas
         $areaVentas = Area::where('codigo', 'AREA-VENTAS')->first();
         $areaProduccion = Area::where('codigo', 'AREA-PROD')->first();
         $areaLogistica = Area::where('codigo', 'AREA-LOG')->first();
 
-        // Super Administrador (sin área)
+        // Super Administrador (sin Empresa)
         User::updateOrCreate(
             ['dni' => '00000000'],
             [
@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Administradores de Área
+        // Administradores de Empresa
         if ($areaVentas) {
             User::updateOrCreate(
                 ['dni' => '11111111'],
@@ -62,7 +62,7 @@ class UserSeeder extends Seeder
             );
         }
 
-        // Operadores - Área de Ventas
+        // Operadores - Empresa de Ventas
         if ($areaVentas) {
             $operadoresVentas = [
                 '12345678' => 'Juan Pérez',
@@ -84,7 +84,7 @@ class UserSeeder extends Seeder
             }
         }
 
-        // Operadores - Área de Producción
+        // Operadores - Empresa de Producción
         if ($areaProduccion) {
             $operadoresProduccion = [
                 '11223344' => 'Carlos López',
@@ -106,7 +106,7 @@ class UserSeeder extends Seeder
             }
         }
 
-        // Operadores - Área de Logística
+        // Operadores - Empresa de Logística
         if ($areaLogistica) {
             User::updateOrCreate(
                 ['dni' => '55667788'],

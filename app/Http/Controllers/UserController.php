@@ -17,20 +17,20 @@ class UserController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         // Super admin: ver todos los usuarios
         if ($user->isAdmin()) {
             $users = User::with('area')
-                        ->orderBy('name')
-                        ->get();
+                ->orderBy('name')
+                ->get();
         }
-        // Area admin: ver solo usuarios de su área
+        // Area admin: ver solo usuarios de su Empresa
         elseif ($user->isAreaAdmin()) {
             $users = User::with('area')
-                        ->where('area_id', $user->area_id)
-                        ->where('id', '!=', $user->id) // No mostrar al mismo admin
-                        ->orderBy('name')
-                        ->get();
+                ->where('area_id', $user->area_id)
+                ->where('id', '!=', $user->id) // No mostrar al mismo admin
+                ->orderBy('name')
+                ->get();
         }
         // Operador: no puede ver usuarios
         else {
@@ -48,7 +48,7 @@ class UserController extends Controller
     public function create()
     {
         $user = Auth::user();
-        
+
         if (!$user->isAdmin() && !$user->isAreaAdmin()) {
             abort(403, 'No tienes permisos para crear usuarios.');
         }
@@ -64,7 +64,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        
+
         if (!$user->isAdmin() && !$user->isAreaAdmin()) {
             abort(403, 'No tienes permisos para crear usuarios.');
         }
@@ -75,14 +75,18 @@ class UserController extends Controller
             'email' => 'nullable|string|email|max:255|unique:users,email',
             'telefono' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
-            'role' => ['required', 'string', function ($attribute, $value, $fail) {
-                if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
-                    $fail('El rol debe ser Administrador de Área o Usuario/Trabajador.');
+            'role' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
+                        $fail('El rol debe ser Administrador de Empresa o Usuario/Trabajador.');
+                    }
                 }
-            }],
+            ],
         ];
 
-        // Si es area admin, solo puede asignar a su área
+        // Si es area admin, solo puede asignar a su Empresa
         if ($user->isAreaAdmin()) {
             $rules['area_id'] = 'required|exists:areas,id';
         } else {
@@ -91,7 +95,7 @@ class UserController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Si es area admin, forzar su área
+        // Si es area admin, forzar su Empresa
         if ($user->isAreaAdmin()) {
             $validated['area_id'] = $user->area_id;
         }
@@ -107,7 +111,7 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index')
-                         ->with('success', 'Usuario creado correctamente.');
+            ->with('success', 'Usuario creado correctamente.');
     }
 
     /**
@@ -165,14 +169,18 @@ class UserController extends Controller
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'telefono' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:8',
-            'role' => ['required', 'string', function ($attribute, $value, $fail) {
-                if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
-                    $fail('El rol debe ser Administrador de Área o Usuario/Trabajador.');
+            'role' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!in_array($value, [Role::AREA_ADMIN, Role::OPERADOR])) {
+                        $fail('El rol debe ser Administrador de Empresa o Usuario/Trabajador.');
+                    }
                 }
-            }],
+            ],
         ];
 
-        // Si es area admin, solo puede asignar a su área
+        // Si es area admin, solo puede asignar a su Empresa
         if ($currentUser->isAreaAdmin()) {
             $rules['area_id'] = 'required|exists:areas,id';
         } else {
@@ -181,7 +189,7 @@ class UserController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Si es area admin, forzar su área
+        // Si es area admin, forzar su Empresa
         if ($currentUser->isAreaAdmin()) {
             $validated['area_id'] = $currentUser->area_id;
         }
@@ -203,7 +211,7 @@ class UserController extends Controller
         $user->update($userData);
 
         return redirect()->route('users.index')
-                         ->with('success', 'Usuario actualizado correctamente.');
+            ->with('success', 'Usuario actualizado correctamente.');
     }
 
     /**
@@ -231,13 +239,13 @@ class UserController extends Controller
         // No permitir auto-eliminación
         if ($user->id === $currentUser->id) {
             return redirect()->route('users.index')
-                           ->with('error', 'No puedes eliminar tu propio usuario.');
+                ->with('error', 'No puedes eliminar tu propio usuario.');
         }
 
         $user->delete();
 
         return redirect()->route('users.index')
-                         ->with('success', 'Usuario eliminado correctamente.');
+            ->with('success', 'Usuario eliminado correctamente.');
     }
 }
 

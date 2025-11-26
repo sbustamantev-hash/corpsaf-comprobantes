@@ -531,13 +531,13 @@ docker-compose exec app bash
 docker-compose exec db bash
 ```
 
-## 📁 Estructura de Docker
+## 📁 EstTipoRendiciontura de Docker
 
 - **app**: Contenedor principal con PHP 8.2, Nginx y la aplicación Laravel
 - **db**: Contenedor con MySQL 8.0
 - **node**: Contenedor opcional con Node.js 20 para desarrollo con Vite (perfil `dev`)
 
-## 📝 Estructura del Proyecto
+## 📝 EstTipoRendiciontura del Proyecto
 
 ```
 corpsaf-comprobantes/

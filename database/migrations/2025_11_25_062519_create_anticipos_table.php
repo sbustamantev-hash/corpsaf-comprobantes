@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,7 +18,7 @@ return new class extends Migration
             $table->enum('tipo', ['anticipo', 'reembolso'])->default('anticipo');
             $table->date('fecha');
             $table->foreignId('banco_id')->nullable()->constrained('bancos')->nullOnDelete();
-            $table->string('ruc', 20)->nullable();
+            $table->string('TipoRendicion', 20)->nullable();
             $table->decimal('importe', 12, 2);
             $table->text('descripcion')->nullable();
             $table->enum('estado', ['pendiente', 'completo'])->default('pendiente');

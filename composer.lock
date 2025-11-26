@@ -196,7 +196,7 @@
                     "homepage": "https://www.colinodell.com"
                 }
             ],
-            "description": "Given a deep data structure, access data by dot notation.",
+            "description": "Given a deep data stTipoRendicionture, access data by dot notation.",
             "homepage": "https://github.com/dflydev/dflydev-dot-access-data",
             "keywords": [
                 "access",
@@ -2277,7 +2277,7 @@
                     "homepage": "https://nette.org/contributors"
                 }
             ],
-            "description": "📐 Nette Schema: validating data structures against a given Schema.",
+            "description": "📐 Nette Schema: validating data stTipoRendiciontures against a given Schema.",
             "homepage": "https://nette.org",
             "keywords": [
                 "config",
@@ -4080,7 +4080,7 @@
                     "homepage": "https://symfony.com/contributors"
                 }
             ],
-            "description": "Provides a structured process for converting a Request into a Response",
+            "description": "Provides a stTipoRendiciontured process for converting a Request into a Response",
             "homepage": "https://symfony.com",
             "support": {
                 "source": "https://github.com/symfony/http-kernel/tree/v7.3.7"
@@ -7904,7 +7904,7 @@
                     "email": "sebastian@phpunit.de"
                 }
             ],
-            "description": "Traverses array structures and object graphs to enumerate all referenced objects",
+            "description": "Traverses array stTipoRendiciontures and object graphs to enumerate all referenced objects",
             "homepage": "https://github.com/sebastianbergmann/object-enumerator/",
             "support": {
                 "issues": "https://github.com/sebastianbergmann/object-enumerator/issues",

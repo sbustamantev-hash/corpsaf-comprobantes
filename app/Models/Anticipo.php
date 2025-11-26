@@ -16,10 +16,11 @@ class Anticipo extends Model
         'tipo',
         'fecha',
         'banco_id',
-        'ruc',
+        'TipoRendicion',
         'importe',
         'descripcion',
         'estado',
+        'tipo_rendicion_id',
     ];
 
     protected $casts = [
@@ -45,6 +46,11 @@ class Anticipo extends Model
     public function banco()
     {
         return $this->belongsTo(Banco::class);
+    }
+
+    public function tipoRendicion()
+    {
+        return $this->belongsTo(TipoRendicion::class);
     }
 
     public function comprobantes()

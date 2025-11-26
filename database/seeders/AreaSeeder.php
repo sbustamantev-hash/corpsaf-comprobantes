@@ -14,21 +14,21 @@ class AreaSeeder extends Seeder
     {
         $areas = [
             [
-                'nombre' => 'Área de Ventas',
+                'nombre' => 'Empresa de Ventas',
                 'codigo' => 'AREA-VENTAS',
-                'descripcion' => 'Área encargada de las ventas y atención al cliente',
+                'descripcion' => 'Empresa encargada de las ventas y atención al cliente',
                 'activo' => true,
             ],
             [
-                'nombre' => 'Área de Producción',
+                'nombre' => 'Empresa de Producción',
                 'codigo' => 'AREA-PROD',
-                'descripcion' => 'Área encargada de la producción y manufactura',
+                'descripcion' => 'Empresa encargada de la producción y manufactura',
                 'activo' => true,
             ],
             [
-                'nombre' => 'Área de Logística',
+                'nombre' => 'Empresa de Logística',
                 'codigo' => 'AREA-LOG',
-                'descripcion' => 'Área encargada de la logística y distribución',
+                'descripcion' => 'Empresa encargada de la logística y distribución',
                 'activo' => true,
             ],
         ];
