@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Observacion;
 use App\Models\Anticipo;
 use App\Models\TipoComprobante;
+use App\Models\Area;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -21,12 +22,12 @@ class ComprobanteController extends Controller
         $anticipos = collect();
         $tiposComprobante = collect();
         $operadores = collect();
+        $comprobantes = collect();
 
-        // Super admin: ver todos los comprobantes
+        // Super admin: no mostrar comprobantes, mostrar info general del sistema
         if ($user->isAdmin()) {
-            $comprobantes = Comprobante::with('user.area')
-                                      ->orderBy('id', 'desc')
-                                      ->get();
+            // No cargar comprobantes para super admin
+            // Se pasarán estadísticas generales a la vista
         }
         // Area admin: ver solo comprobantes de su área
         elseif ($user->isAreaAdmin()) {
@@ -61,6 +62,27 @@ class ComprobanteController extends Controller
                                  ->get();
 
             $tiposComprobante = TipoComprobante::orderBy('descripcion')->get();
+        }
+        
+        // Para super admin, pasar estadísticas generales
+        if ($user->isAdmin()) {
+            $totalAreas = Area::count();
+            $areasActivas = Area::where('activo', true)->count();
+            $totalUsuarios = User::where('id', '!=', $user->id)->count();
+            $totalAreaAdmins = User::where('role', 'area_admin')->count();
+            $totalOperadores = User::whereIn('role', ['operador', 'trabajador'])->count();
+            
+            return view('comprobantes.index', compact(
+                'comprobantes', 
+                'anticipos', 
+                'tiposComprobante', 
+                'operadores',
+                'totalAreas',
+                'areasActivas',
+                'totalUsuarios',
+                'totalAreaAdmins',
+                'totalOperadores'
+            ));
         }
         
         return view('comprobantes.index', compact('comprobantes', 'anticipos', 'tiposComprobante', 'operadores'));

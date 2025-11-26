@@ -22,6 +22,10 @@ class Comprobante extends Model
         'estado'
     ];
 
+    protected $casts = [
+        'fecha' => 'date',
+    ];
+
     // Relación con usuario
     public function user()
     {

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Dashboard')
-@section('subtitle', Auth::user()->isOperador() ? 'Gestiona tus anticipos y reembolsos' : 'Resumen de tus comprobantes')
+@section('subtitle', Auth::user()->isOperador() ? 'Gestiona tus anticipos y reembolsos' : (Auth::user()->isAdmin() ? 'Panel de administración del sistema' : 'Resumen de tus comprobantes'))
 
 @section('header-actions')
     @if(Auth::user()->isOperador())
@@ -91,8 +91,63 @@
             </div>
         </div>
     </div>
+    @elseif(Auth::user()->isAdmin())
+    <!-- Summary Cards para Super Admin - Estadísticas Generales -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 mb-1">Total Áreas</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ $totalAreas ?? 0 }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ $areasActivas ?? 0 }} activas</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-building text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 mb-1">Total Usuarios</p>
+                    <p class="text-3xl font-bold text-green-600">{{ $totalUsuarios ?? 0 }}</p>
+                    <p class="text-xs text-gray-500 mt-1">En el sistema</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 mb-1">Admin Áreas</p>
+                    <p class="text-3xl font-bold text-purple-600">{{ $totalAreaAdmins ?? 0 }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Administradores</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-shield text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 mb-1">Trabajadores</p>
+                    <p class="text-3xl font-bold text-orange-600">{{ $totalOperadores ?? 0 }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Operadores</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
     @else
-    <!-- Summary Cards para Admin/Area Admin -->
+    <!-- Summary Cards para Area Admin -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between">
@@ -429,8 +484,59 @@
     </div>
     @endif
 
-    @if(!Auth::user()->isOperador())
-    <!-- Comprobantes Table (solo para Admin y Area Admin) -->
+    @if(Auth::user()->isAdmin())
+    <!-- Vista para Super Admin - Información General -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Accesos Rápidos -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Accesos Rápidos</h3>
+            <div class="space-y-3">
+                <a href="{{ route('areas.index') }}" 
+                   class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-building text-blue-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">Gestionar Áreas/Empresas</p>
+                        <p class="text-sm text-gray-500">Administra las áreas y empresas del sistema</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+                <a href="{{ route('users.index') }}" 
+                   class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 transition">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-users text-green-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">Gestionar Usuarios</p>
+                        <p class="text-sm text-gray-500">Administra usuarios y trabajadores</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Información del Sistema</h3>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+                    <span class="text-sm text-gray-600">Versión del Sistema</span>
+                    <span class="text-sm font-medium text-gray-900">CorpSAF Comprobantes v1.0</span>
+                </div>
+                <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+                    <span class="text-sm text-gray-600">Áreas Activas</span>
+                    <span class="text-sm font-medium text-gray-900">{{ $areasActivas ?? 0 }} de {{ $totalAreas ?? 0 }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Total de Usuarios</span>
+                    <span class="text-sm font-medium text-gray-900">{{ $totalUsuarios ?? 0 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    @elseif(!Auth::user()->isOperador())
+    <!-- Comprobantes Table (solo para Area Admin) -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="p-6 border-b border-gray-200">
             <div class="flex items-center justify-between">

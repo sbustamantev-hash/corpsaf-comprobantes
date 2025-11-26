@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class SistemaController extends Controller
+{
+    /**
+     * Mostrar pantalla de selección de sistemas
+     */
+    public function index()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        // Por ahora solo hay un sistema disponible
+        $sistemas = [
+            [
+                'id' => 'comprobantes',
+                'nombre' => 'Sistema de gestión',
+                'subtitulo' => 'Entrega a rendir',
+                'descripcion' => 'Gestiona anticipos, reembolsos y comprobantes',
+                'icono' => 'fa-file-invoice-dollar',
+                'color' => 'blue',
+                'ruta' => route('comprobantes.index')
+            ]
+        ];
+
+        return view('sistemas.index', compact('sistemas'));
+    }
+
+    /**
+     * Seleccionar un sistema y redirigir
+     */
+    public function seleccionar(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $sistemaId = $request->input('sistema_id');
+
+        // Por ahora solo hay un sistema
+        if ($sistemaId === 'comprobantes') {
+            return redirect()->route('comprobantes.index');
+        }
+
+        return redirect()->route('sistemas.index')
+                         ->with('error', 'Sistema no válido.');
+    }
+}
+

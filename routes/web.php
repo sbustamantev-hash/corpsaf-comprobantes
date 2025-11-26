@@ -6,6 +6,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AnticipoController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TipoComprobanteController;
+use App\Http\Controllers\BancoController;
+use App\Http\Controllers\SistemaController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -19,9 +22,17 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 */
 Route::get('/', function () {
     if (auth()->check()) {
-        return redirect()->route('comprobantes.index');
+        return redirect()->route('sistemas.index');
     }
     return redirect()->route('login');
+});
+
+/*
+ RUTAS DE SELECCIÓN DE SISTEMAS - Requieren autenticación
+*/
+Route::middleware('auth')->group(function () {
+    Route::get('/sistemas', [SistemaController::class, 'index'])->name('sistemas.index');
+    Route::post('/sistemas/seleccionar', [SistemaController::class, 'seleccionar'])->name('sistemas.seleccionar');
 });
 
 /* 
@@ -47,6 +58,12 @@ Route::middleware('auth')->group(function () {
     
     // RUTAS CRUD DE USUARIOS - Admin y Area Admin
     Route::resource('users', UserController::class);
+    
+    // RUTAS CRUD DE TIPOS DE COMPROBANTE - Solo super admin
+    Route::resource('tipos-comprobante', TipoComprobanteController::class);
+    
+    // RUTAS CRUD DE BANCOS - Solo super admin
+    Route::resource('bancos', BancoController::class);
 
     // Anticipos
     Route::get('areas/{area}/users/{user}/anticipos/create', [AnticipoController::class, 'create'])->name('areas.users.anticipos.create');

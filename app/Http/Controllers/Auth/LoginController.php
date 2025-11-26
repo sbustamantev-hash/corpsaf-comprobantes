@@ -15,7 +15,7 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         if (Auth::check()) {
-            return redirect()->route('comprobantes.index');
+            return redirect()->route('sistemas.index');
         }
         return view('auth.login');
     }
@@ -40,7 +40,7 @@ class LoginController extends Controller
         if ($user && \Illuminate\Support\Facades\Hash::check($password, $user->password)) {
             Auth::login($user, $remember);
             $request->session()->regenerate();
-            return redirect()->intended(route('comprobantes.index'));
+            return redirect()->intended(route('sistemas.index'));
         }
 
         throw ValidationException::withMessages([

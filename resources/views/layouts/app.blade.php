@@ -41,6 +41,16 @@
                         <i class="fas fa-building w-5"></i>
                         <span class="font-medium">Áreas/Empresas</span>
                     </a>
+                    <a href="{{ route('tipos-comprobante.index') }}" 
+                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('tipos-comprobante.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="fas fa-file-invoice w-5"></i>
+                        <span class="font-medium">Tipos de Comprobante</span>
+                    </a>
+                    <a href="{{ route('bancos.index') }}" 
+                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('bancos.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="fas fa-university w-5"></i>
+                        <span class="font-medium">Bancos</span>
+                    </a>
                     @endif
                     <a href="{{ route('users.index') }}" 
                        class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
