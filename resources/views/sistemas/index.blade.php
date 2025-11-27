@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
             background-attachment: fixed;
             position: relative;
         }
+
         body::before {
             content: '';
             position: fixed;
@@ -19,20 +21,23 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
-                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,255,.03) 50px, rgba(255,255,255,.03) 51px),
-                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,.03) 50px, rgba(255,255,255,.03) 51px);
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255, 255, 255, .03) 50px, rgba(255, 255, 255, .03) 51px),
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255, 255, 255, .03) 50px, rgba(255, 255, 255, .03) 51px);
             background-size: 100px 100px;
             pointer-events: none;
             z-index: 0;
         }
-        body > * {
+
+        body>* {
             position: relative;
             z-index: 1;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4"
+    style="background-image: url('{{ asset('img/background_sistemas.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
     <div class="w-full max-w-4xl z-10">
         <!-- Header -->
         <div class="text-center mb-12">
@@ -40,7 +45,7 @@
                 <i class="fas fa-cubes text-white text-4xl"></i>
             </div>
             <h1 class="text-4xl font-bold text-white mb-3 drop-shadow-lg">Bienvenido, {{ Auth::user()->name }}</h1>
-            <p class="text-xl text-white/90 drop-shadow">Selecciona el sistema que deseas utilizar</p>
+            <p class="text-xl text-white drop-shadow">Selecciona el sistema que deseas utilizar</p>
         </div>
 
         <!-- Mensajes -->
@@ -57,8 +62,8 @@
                     <form action="{{ route('sistemas.seleccionar') }}" method="POST">
                         @csrf
                         <input type="hidden" name="sistema_id" value="{{ $sistema['id'] }}">
-                        <button type="submit" 
-                                class="w-64 h-64 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-6 flex flex-col items-center justify-center border-2 border-transparent hover:border-blue-500 group">
+                        <button type="submit"
+                            class="w-64 h-64 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-6 flex flex-col items-center justify-center border-2 border-transparent hover:border-blue-500 group">
                             <!-- Icono -->
                             <div class="mb-4">
                                 @php
@@ -72,11 +77,12 @@
                                     ];
                                     $gradient = $colorMap[$sistema['color']] ?? $colorMap['blue'];
                                 @endphp
-                                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300">
+                                <div
+                                    class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300">
                                     <i class="fas {{ $sistema['icono'] }} text-white text-2xl"></i>
                                 </div>
                             </div>
-                            
+
                             <!-- Título y Subtítulo -->
                             @php
                                 $textColorMap = [
@@ -90,23 +96,26 @@
                                 $textColor = $textColorMap[$sistema['color']] ?? 'text-blue-600';
                                 $hoverColor = str_replace('600', '700', $textColor);
                             @endphp
-                            <h3 class="text-lg font-bold text-gray-900 mb-1 text-center group-hover:{{ $textColor }} transition-colors">
+                            <h3
+                                class="text-lg font-bold text-gray-900 mb-1 text-center group-hover:{{ $textColor }} transition-colors">
                                 {{ $sistema['nombre'] }}
                             </h3>
                             <p class="text-sm font-semibold {{ $textColor }} mb-3 text-center">
                                 {{ $sistema['subtitulo'] }}
                             </p>
-                            
+
                             <!-- Descripción -->
                             <p class="text-xs text-gray-600 mb-4 text-center flex-grow">
                                 {{ Str::limit($sistema['descripcion'], 60) }}
                             </p>
-                            
+
                             <!-- Botón de acción -->
                             <div class="mt-auto">
-                                <div class="inline-flex items-center {{ $textColor }} font-semibold group-hover:{{ $hoverColor }}">
+                                <div
+                                    class="inline-flex items-center {{ $textColor }} font-semibold group-hover:{{ $hoverColor }}">
                                     <span class="text-sm">Ingresar</span>
-                                    <i class="fas fa-arrow-right ml-2 text-xs group-hover:translate-x-2 transition-transform"></i>
+                                    <i
+                                        class="fas fa-arrow-right ml-2 text-xs group-hover:translate-x-2 transition-transform"></i>
                                 </div>
                             </div>
                         </button>
@@ -126,5 +135,5 @@
         </div>
     </div>
 </body>
-</html>
 
+</html>

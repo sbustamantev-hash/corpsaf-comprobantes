@@ -64,7 +64,7 @@ class ComprobanteController extends Controller
 
             $tiposComprobante = TipoComprobante::orderBy('descripcion')->get();
         }
-        
+
         // Para super admin, pasar estadísticas generales
         if ($user->isAdmin()) {
             $totalAreas = Area::count();
@@ -72,11 +72,11 @@ class ComprobanteController extends Controller
             $totalUsuarios = User::where('id', '!=', $user->id)->count();
             $totalAreaAdmins = User::where('role', 'area_admin')->count();
             $totalOperadores = User::whereIn('role', ['operador', 'trabajador'])->count();
-            
+
             return view('comprobantes.index', compact(
-                'comprobantes', 
-                'anticipos', 
-                'tiposComprobante', 
+                'comprobantes',
+                'anticipos',
+                'tiposComprobante',
                 'operadores',
                 'totalAreas',
                 'areasActivas',
@@ -85,7 +85,7 @@ class ComprobanteController extends Controller
                 'totalOperadores'
             ));
         }
-        
+
         return view('comprobantes.index', compact('comprobantes', 'anticipos', 'tiposComprobante', 'operadores'));
     }
 
@@ -110,7 +110,7 @@ class ComprobanteController extends Controller
         }
 
         $tiposComprobante = TipoComprobante::where('activo', true)
-            ->orderBy('descripcion')
+            ->orderBy('codigo')
             ->get();
 
         return view('comprobantes.create', compact('anticipo', 'tiposComprobante'));
@@ -340,7 +340,7 @@ class ComprobanteController extends Controller
         }
 
         $request->validate([
-            'mensaje' => 'required|string|min:10',
+            'mensaje' => 'required|string|min:2',
         ]);
 
         $comprobante = Comprobante::with('user')->findOrFail($id);
@@ -362,6 +362,17 @@ class ComprobanteController extends Controller
             'tipo' => 'aprobacion',
         ]);
 
+        // Verificar si todos los comprobantes del anticipo están aprobados
+        if ($comprobante->anticipo_id) {
+            $anticipo = $comprobante->anticipo;
+            $pendientes = $anticipo->comprobantes()->where('estado', '!=', 'aprobado')->exists();
+
+            if (!$pendientes) {
+                $anticipo->estado = 'aprobado';
+                $anticipo->save();
+            }
+        }
+
         return redirect()->route('comprobantes.show', $comprobante->id)
             ->with('success', 'Comprobante aprobado correctamente.');
     }
@@ -378,7 +389,7 @@ class ComprobanteController extends Controller
         }
 
         $request->validate([
-            'mensaje' => 'required|string|min:10',
+            'mensaje' => 'required|string|min:2',
         ]);
 
         $comprobante = Comprobante::with('user')->findOrFail($id);

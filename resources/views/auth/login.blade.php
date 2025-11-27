@@ -15,9 +15,8 @@
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4">
                 @if(isset($logoPath) && $logoPath)
-                    <img src="{{ asset('storage/' . $logoPath) }}" 
-                         alt="Logo" 
-                         class="w-full h-full object-contain rounded-xl">
+                    <img src="{{ asset('storage/' . $logoPath) }}" alt="Logo"
+                        class="w-full h-full object-contain rounded-xl">
                 @else
                     <i class="fas fa-file-invoice-dollar text-white text-3xl"></i>
                 @endif
@@ -88,7 +87,15 @@
                     <i class="fas fa-info-circle mr-1"></i>
                     <strong>Accesos:</strong><br>
                     Usa tu DNI como usuario y contraseña. <strong>Recuerda que la contraseña es intransferible</strong>
-                    Bienvenido
+                <div class="text-center mt-2">Bienvenido</div>
+                <div class="text-center mt-2">
+                    © <span id="year" class="text-gray-600"></span> Ynnova Digital Corp. Todos los derechos reservados.
+                </div>
+
+                <script>
+                    document.getElementById("year").textContent = new Date().getFullYear();
+                </script>
+
                 </p>
             </div>
         </div>

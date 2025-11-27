@@ -247,15 +247,15 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Resumen</h2>
                 <div class="space-y-4">
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
-                        <span class="text-sm text-gray-600">Importe Total</span>
+                        <span class="text-sm text-gray-600">Anticipo Total</span>
                         <span class="text-lg font-bold text-gray-900">S/ {{ number_format($anticipo->importe, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
-                        <span class="text-sm text-gray-600">Total Comprobado</span>
+                        <span class="text-sm text-gray-600">Saldo Justificado</span>
                         <span class="text-lg font-semibold text-blue-600">S/ {{ number_format($totalComprobado, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Saldo Pendiente</span>
+                        <span class="text-sm text-gray-600">Saldo a Reembolsar</span>
                         <span class="text-lg font-semibold {{ $restante < 0 ? 'text-red-600' : ($restante > 0 ? 'text-yellow-600' : 'text-green-600') }}">
                             S/ {{ number_format($restante, 2) }}
                         </span>

@@ -98,7 +98,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">Total Áreas</p>
+                    <p class="text-sm font-medium text-gray-600 mb-1">Total De Empresas</p>
                     <p class="text-3xl font-bold text-blue-600">{{ $totalAreas ?? 0 }}</p>
                     <p class="text-xs text-gray-500 mt-1">{{ $areasActivas ?? 0 }} activas</p>
                 </div>
@@ -124,7 +124,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">Admin Áreas</p>
+                    <p class="text-sm font-medium text-gray-600 mb-1">Admin De Empresas</p>
                     <p class="text-3xl font-bold text-purple-600">{{ $totalAreaAdmins ?? 0 }}</p>
                     <p class="text-xs text-gray-500 mt-1">Administradores</p>
                 </div>
@@ -529,10 +529,10 @@
             <div class="space-y-4">
                 <div class="flex items-center justify-between pb-3 border-b border-gray-200">
                     <span class="text-sm text-gray-600">Versión del Sistema</span>
-                    <span class="text-sm font-medium text-gray-900">CorpSAF Comprobantes v1.0</span>
+                    <span class="text-sm font-medium text-gray-900">YnnovaCorp Comprobantes v1.0</span>
                 </div>
                 <div class="flex items-center justify-between pb-3 border-b border-gray-200">
-                    <span class="text-sm text-gray-600">Áreas Activas</span>
+                    <span class="text-sm text-gray-600">Empresas Activas</span>
                     <span class="text-sm font-medium text-gray-900">{{ $areasActivas ?? 0 }} de {{ $totalAreas ?? 0 }}</span>
                 </div>
                 <div class="flex items-center justify-between">
