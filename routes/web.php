@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ComprobanteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AreaController;
@@ -22,7 +23,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
  RUTA PRINCIPAL - Redirige a login si no está autenticado
 */
 Route::get('/', function () {
-    if (auth()->check()) {
+    if (Auth::check()) {
         return redirect()->route('sistemas.index');
     }
     return redirect()->route('login');
@@ -69,6 +70,7 @@ Route::middleware('auth')->group(function () {
     // RUTAS DE CONFIGURACIONES - Solo super admin
     Route::get('configuraciones', [ConfiguracionController::class, 'index'])->name('configuraciones.index');
     Route::put('configuraciones', [ConfiguracionController::class, 'update'])->name('configuraciones.update');
+    Route::post('configuraciones/branding', [ConfiguracionController::class, 'updateBranding'])->name('configuraciones.branding.update');
 
     // Anticipos
     Route::get('areas/{area}/users/{user}/anticipos/create', [AnticipoController::class, 'create'])->name('areas.users.anticipos.create');
