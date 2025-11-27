@@ -21,18 +21,46 @@
             @endif
 
             <div class="space-y-6">
-                @php
-                    $empresa = Auth::user()->area;
-                @endphp
-
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">RUC de la Empresa</label>
                     <input type="text"
                            name="ruc_empresa"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           value="{{ $empresa->codigo ?? '' }}"
-                           readonly>
-                    <p class="mt-1 text-xs text-gray-500">Corresponde a la empresa a la que perteneces.</p>
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('ruc_empresa') border-red-500 @enderror"
+                           value="{{ old('ruc_empresa') }}"
+                           placeholder="Ingresa el RUC de tu empresa">
+                    <p class="mt-1 text-xs text-gray-500">Ingresa el RUC de la empresa a la que perteneces.</p>
+                    @error('ruc_empresa')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de serie</label>
+                        <input type="text"
+                               name="serie"
+                               maxlength="4"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('serie') border-red-500 @enderror"
+                               value="{{ old('serie') }}"
+                               placeholder="Ej: 0846">
+                        @error('serie')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de comprobante</label>
+                        <input type="text"
+                               name="numero"
+                               maxlength="10"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('numero') border-red-500 @enderror"
+                               value="{{ old('numero') }}"
+                               placeholder="Ej: 0000000456">
+                        <p class="mt-1 text-xs text-gray-500">10 dígitos. Se completará con ceros a la izquierda.</p>
+                        @error('numero')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <div>
@@ -131,6 +159,8 @@
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('archivo');
     const fileName = document.getElementById('file-name');
+    const serieInput = document.querySelector('input[name="serie"]');
+    const numeroInput = document.querySelector('input[name="numero"]');
 
     // Prevenir comportamiento por defecto del navegador
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -190,5 +220,30 @@
             fileInput.click();
         }
     });
+
+    function padSerie(value) {
+        if (!value) return '';
+        const cleaned = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        if (!cleaned.length) return '';
+        return cleaned.slice(-4).padStart(4, '0');
+    }
+
+    function padNumero(value) {
+        if (!value) return ''.padStart(10, '0');
+        const onlyDigits = value.replace(/\D/g, '').slice(-10);
+        return onlyDigits.padStart(10, '0');
+    }
+
+    if (serieInput) {
+        serieInput.addEventListener('blur', () => {
+            serieInput.value = padSerie(serieInput.value);
+        });
+    }
+
+    if (numeroInput) {
+        numeroInput.addEventListener('blur', () => {
+            numeroInput.value = padNumero(numeroInput.value);
+        });
+    }
 </script>
 @endsection

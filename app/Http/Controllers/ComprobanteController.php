@@ -17,6 +17,7 @@ class ComprobanteController extends Controller
     // LISTAR COMPROBANTES
     public function index()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $anticipos = collect();
@@ -91,6 +92,7 @@ class ComprobanteController extends Controller
     // FORMULARIO CREAR
     public function create(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Solo operadores pueden crear comprobantes
@@ -119,6 +121,8 @@ class ComprobanteController extends Controller
     {
         $validated = $request->validate([
             'tipo' => 'required|exists:tipos_comprobante,codigo',
+            'serie' => ['required', 'alpha_num', 'max:4'],
+            'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
@@ -134,6 +138,7 @@ class ComprobanteController extends Controller
         }
 
         // Asignar al usuario autenticado
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $anticipo = null;
@@ -145,10 +150,15 @@ class ComprobanteController extends Controller
             }
         }
 
+        $serie = str_pad(strtoupper($validated['serie']), 4, '0', STR_PAD_LEFT);
+        $numero = str_pad($validated['numero'], 10, '0', STR_PAD_LEFT);
+
         $comprobante = Comprobante::create([
             'user_id' => $user->id,
             'anticipo_id' => $anticipo?->id,
             'tipo' => $validated['tipo'],
+            'serie' => $serie,
+            'numero' => $numero,
             'monto' => $validated['monto'],
             'fecha' => $validated['fecha'],
             'detalle' => $validated['detalle'] ?? null,
@@ -171,6 +181,7 @@ class ComprobanteController extends Controller
     // VER DETALLES
     public function show($id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $comprobante = Comprobante::with(['user.area', 'observaciones.user'])->findOrFail($id);
 
@@ -198,6 +209,7 @@ class ComprobanteController extends Controller
     // FORMULARIO EDITAR
     public function edit($id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $comprobante = Comprobante::with('user')->findOrFail($id);
 
@@ -219,12 +231,15 @@ class ComprobanteController extends Controller
     {
         $request->validate([
             'tipo' => 'required|string|max:50',
+            'serie' => ['required', 'alpha_num', 'max:4'],
+            'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
             'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $comprobante = Comprobante::findOrFail($id);
 
@@ -243,6 +258,8 @@ class ComprobanteController extends Controller
         }
 
         $comprobante->tipo = $request->tipo;
+        $comprobante->serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
+        $comprobante->numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
         $comprobante->monto = $request->monto;
         $comprobante->fecha = $request->fecha;
         $comprobante->detalle = $request->detalle;
@@ -256,6 +273,7 @@ class ComprobanteController extends Controller
     // ELIMINAR
     public function destroy($id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $comprobante = Comprobante::findOrFail($id);
 
@@ -278,6 +296,7 @@ class ComprobanteController extends Controller
     // SERVIR ARCHIVO CON AUTENTICACIÓN
     public function download($id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $comprobante = Comprobante::with('user')->findOrFail($id);
 
@@ -312,6 +331,7 @@ class ComprobanteController extends Controller
     // APROBAR COMPROBANTE (super admin y area admin)
     public function aprobar(Request $request, $id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Solo super admin y area admin pueden aprobar
@@ -349,6 +369,7 @@ class ComprobanteController extends Controller
     // RECHAZAR COMPROBANTE (super admin y area admin)
     public function rechazar(Request $request, $id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Solo super admin y area admin pueden rechazar
@@ -386,6 +407,7 @@ class ComprobanteController extends Controller
     // AGREGAR OBSERVACIÓN (cualquier usuario autenticado con acceso)
     public function agregarObservacion(Request $request, $id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $comprobante = Comprobante::with('user')->findOrFail($id);
 
@@ -437,6 +459,7 @@ class ComprobanteController extends Controller
     public function downloadObservacion($id)
     {
         $observacion = Observacion::findOrFail($id);
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Verificar que el usuario tenga acceso al comprobante
@@ -449,6 +472,7 @@ class ComprobanteController extends Controller
             abort(404, 'Archivo no encontrado.');
         }
 
-        return Storage::disk('public')->download($observacion->archivo);
+        $path = Storage::disk('public')->path($observacion->archivo);
+        return response()->download($path, basename($observacion->archivo));
     }
 }

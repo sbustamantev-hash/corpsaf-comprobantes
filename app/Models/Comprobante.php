@@ -15,6 +15,8 @@ class Comprobante extends Model
         'user_id',
         'anticipo_id',
         'tipo',
+        'serie',
+        'numero',
         'monto',
         'fecha',
         'detalle',
