@@ -5,7 +5,7 @@
 
 @section('header-actions')
     @auth
-        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && $anticipo->estado === 'pendiente')
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo']))
             <div class="flex items-center space-x-3">
                 <a href="{{ route('anticipos.export.excel', $anticipo->id) }}" 
                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
@@ -156,6 +156,8 @@
                             <span>{{ number_format($porcentaje, 1) }}% completado</span>
                             @if($restante > 0)
                                 <span>Falta: S/ {{ number_format($restante, 2) }}</span>
+                            @elseif($restante < 0)
+                                <span class="text-red-600 font-medium">Excedente: S/ {{ number_format(abs($restante), 2) }}</span>
                             @else
                                 <span class="text-green-600 font-medium">Completo</span>
                             @endif
@@ -254,7 +256,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Saldo Pendiente</span>
-                        <span class="text-lg font-semibold {{ $restante > 0 ? 'text-yellow-600' : 'text-green-600' }}">
+                        <span class="text-lg font-semibold {{ $restante < 0 ? 'text-red-600' : ($restante > 0 ? 'text-yellow-600' : 'text-green-600') }}">
                             S/ {{ number_format($restante, 2) }}
                         </span>
                     </div>
@@ -265,7 +267,7 @@
 
     <!-- Modales para Aprobar/Rechazar -->
     @auth
-        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && $anticipo->estado === 'pendiente')
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo']))
             <!-- Modal Aprobar -->
             <div id="approveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                 <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">

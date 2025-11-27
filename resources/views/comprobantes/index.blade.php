@@ -277,7 +277,7 @@
                                 @php
                                     $totalComprobado = $anticipo->comprobantes->sum('monto');
                                     $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
-                                    $restante = max(0, $anticipo->importe - $totalComprobado);
+                                    $restante = $anticipo->importe - $totalComprobado; // Permite valores negativos
                                 @endphp
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -302,6 +302,8 @@
                                         <span class="text-sm font-medium text-gray-700">S/ {{ number_format($totalComprobado, 2) }}</span>
                                         @if($restante > 0)
                                             <p class="text-xs text-gray-500 mt-1">Falta: S/ {{ number_format($restante, 2) }}</p>
+                                        @elseif($restante < 0)
+                                            <p class="text-xs text-red-600 mt-1">Excedente: S/ {{ number_format(abs($restante), 2) }}</p>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">

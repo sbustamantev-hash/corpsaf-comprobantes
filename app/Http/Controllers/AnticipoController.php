@@ -127,12 +127,8 @@ class AnticipoController extends Controller
             'estado' => 'pendiente',
         ]);
 
-        // Si el monto total alcanza el anticipo, marcar como completo
-        $totalComprobado = $anticipo->comprobantes()->sum('monto');
-        if ($totalComprobado >= $anticipo->importe) {
-            $anticipo->estado = 'completo';
-            $anticipo->save();
-        }
+        // El estado del anticipo solo cambia cuando un admin lo aprueba o rechaza manualmente
+        // No se cambia automáticamente aunque se alcance el monto
 
         return redirect()->back()->with('success', 'Comprobante registrado correctamente.');
     }
@@ -164,7 +160,7 @@ class AnticipoController extends Controller
         }
 
         $totalComprobado = $anticipo->comprobantes->sum('monto');
-        $restante = max(0, $anticipo->importe - $totalComprobado);
+        $restante = $anticipo->importe - $totalComprobado; // Permite valores negativos
         $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
 
         return view('anticipos.show', compact('anticipo', 'totalComprobado', 'restante', 'porcentaje'));

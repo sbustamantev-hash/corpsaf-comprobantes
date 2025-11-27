@@ -166,13 +166,8 @@ class ComprobanteController extends Controller
             'estado' => 'pendiente'
         ]);
 
-        if ($anticipo) {
-            $totalComprobado = $anticipo->comprobantes()->sum('monto');
-            if ($totalComprobado >= $anticipo->importe) {
-                $anticipo->estado = 'completo';
-                $anticipo->save();
-            }
-        }
+        // El estado del anticipo solo cambia cuando un admin lo aprueba o rechaza manualmente
+        // No se cambia automáticamente aunque se alcance el monto
 
         return redirect()->route('comprobantes.index')
             ->with('success', 'Comprobante registrado correctamente.');
