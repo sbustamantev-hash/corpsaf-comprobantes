@@ -223,6 +223,11 @@ class ComprobanteController extends Controller
             abort(403, 'No tienes permisos para editar este comprobante.');
         }
 
+        // No permitir edición si el comprobante ya fue aprobado o rechazado
+        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
+            abort(403, 'No puedes modificar un comprobante aprobado o rechazado.');
+        }
+
         return view('comprobantes.edit', compact('comprobante'));
     }
 
@@ -450,6 +455,12 @@ class ComprobanteController extends Controller
             'tipo' => 'observacion',
             'archivo' => $archivoPath,
         ]);
+
+        // Si un administrador deja una observación, marcar el comprobante como "en_observacion"
+        if (($user->isAdmin() || $user->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'rechazado'])) {
+            $comprobante->estado = 'en_observacion';
+            $comprobante->save();
+        }
 
         return redirect()->route('comprobantes.show', $comprobante->id)
             ->with('success', 'Observación agregada correctamente.');

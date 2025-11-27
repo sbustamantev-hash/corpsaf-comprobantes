@@ -5,7 +5,7 @@
 
 @section('header-actions')
     @auth
-        @if(Auth::user()->isAdmin() && $comprobante->estado === 'pendiente')
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'en_observacion']))
             <div class="flex items-center space-x-3">
                 <button type="button" 
                         onclick="openRejectModal()"
@@ -56,6 +56,10 @@
             @elseif($comprobante->estado === 'rechazado')
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                     Rechazado
+                </span>
+            @elseif($comprobante->estado === 'en_observacion')
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                    En observación
                 </span>
             @else
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
@@ -237,7 +241,7 @@
 
 <!-- Modales para Aprobar/Rechazar -->
 @auth
-    @if(Auth::user()->isAdmin() && $comprobante->estado === 'pendiente')
+    @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'en_observacion']))
         <!-- Modal Aprobar -->
         <div id="approveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">

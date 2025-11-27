@@ -25,11 +25,11 @@
         } else {
             // Métricas para admin: basadas en comprobantes
             if ($user->isAdmin()) {
-                $pendientes = $comprobantes->where('estado', 'pendiente')->count();
+                $pendientes = $comprobantes->whereIn('estado', ['pendiente', 'en_observacion'])->count();
                 $aprobados = $comprobantes->where('estado', 'aprobado')->count();
                 $rechazados = $comprobantes->where('estado', 'rechazado')->count();
             } else {
-                $pendientes = $comprobantes->where('estado', 'pendiente')->count();
+                $pendientes = $comprobantes->whereIn('estado', ['pendiente', 'en_observacion'])->count();
                 $aprobados = $comprobantes->where('estado', 'aprobado')->count();
                 $rechazados = $comprobantes->where('estado', 'rechazado')->count();
             }
@@ -350,11 +350,15 @@
                                                                 </div>
                                                             </div>
                                                             <div class="flex items-center space-x-2">
+                                                                <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
+                                                                   class="text-blue-600 hover:text-blue-800 text-sm">
+                                                                    <i class="fas fa-eye mr-1"></i>Ver detalle
+                                                                </a>
                                                                 @if($comprobante->archivo)
                                                                     <a href="{{ route('comprobantes.download', $comprobante->id) }}" 
                                                                        target="_blank"
-                                                                       class="text-blue-600 hover:text-blue-800 text-sm">
-                                                                        <i class="fas fa-eye mr-1"></i>Ver
+                                                                       class="text-gray-500 hover:text-gray-700 text-xs underline">
+                                                                        <i class="fas fa-file mr-1"></i>Archivo
                                                                     </a>
                                                                 @endif
                                                                 @if($comprobante->estado === 'aprobado')
@@ -600,6 +604,10 @@
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 <i class="fas fa-times-circle mr-1"></i>Rechazado
                                             </span>
+                                        @elseif($comprobante->estado === 'en_observacion')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-eye mr-1"></i>En observación
+                                            </span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                 <i class="fas fa-clock mr-1"></i>Pendiente
@@ -624,7 +632,11 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             @auth
-                                                @if(!Auth::user()->isAdmin())
+                                                @if(
+                                                    !Auth::user()->isAdmin() &&
+                                                    $comprobante->user_id === Auth::id() &&
+                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado'])
+                                                )
                                                     <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
                                                        class="text-yellow-600 hover:text-yellow-900 p-2 hover:bg-yellow-50 rounded transition">
                                                         <i class="fas fa-edit"></i>
@@ -632,7 +644,11 @@
                                                 @endif
                                             @endauth
                                             @auth
-                                                @if(!Auth::user()->isAdmin() && $comprobante->user_id === Auth::id())
+                                                @if(
+                                                    !Auth::user()->isAdmin() &&
+                                                    $comprobante->user_id === Auth::id() &&
+                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado'])
+                                                )
                                                     <form action="{{ route('comprobantes.destroy', $comprobante->id) }}" 
                                                           method="POST"
                                                           class="inline"

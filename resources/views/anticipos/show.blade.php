@@ -196,6 +196,10 @@
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                     <i class="fas fa-times-circle mr-1"></i>Rechazado
                                                 </span>
+                                            @elseif($comprobante->estado === 'en_observacion')
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    <i class="fas fa-eye mr-1"></i>En observación
+                                                </span>
                                             @else
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                     <i class="fas fa-clock mr-1"></i>Pendiente
@@ -203,10 +207,23 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 text-sm font-medium">
-                                            <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
-                                               class="text-blue-600 hover:text-blue-900">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                            <div class="flex items-center space-x-2">
+                                                <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
+                                                   class="text-blue-600 hover:text-blue-900"
+                                                   title="Ver detalle y conversación">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @if(
+                                                    Auth::id() === $comprobante->user_id &&
+                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado'])
+                                                )
+                                                    <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
+                                                       class="text-yellow-600 hover:text-yellow-900"
+                                                       title="Editar comprobante">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
