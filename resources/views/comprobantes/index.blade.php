@@ -23,17 +23,19 @@
             $totalComprobado = $anticipos->sum(function ($a) {
                 return $a->comprobantes->sum('monto'); });
         } else {
-            // Métricas para admin: basadas en comprobantes
+            // Métricas para admin: basadas en anticipos (no comprobantes)
             if ($user->isAdmin()) {
-                $pendientes = $comprobantes->whereIn('estado', ['pendiente', 'en_observacion'])->count();
-                $aprobados = $comprobantes->where('estado', 'aprobado')->count();
-                $rechazados = $comprobantes->where('estado', 'rechazado')->count();
+                // Para super admin, no mostramos estas métricas en las cards principales
+                $pendientes = 0;
+                $aprobados = 0;
+                $rechazados = 0;
             } else {
-                $pendientes = $comprobantes->whereIn('estado', ['pendiente', 'en_observacion'])->count();
-                $aprobados = $comprobantes->where('estado', 'aprobado')->count();
-                $rechazados = $comprobantes->where('estado', 'rechazado')->count();
+                // Para area admin: contar anticipos aprobados y rechazados
+                $pendientes = $anticipos->whereIn('estado', ['pendiente', 'completo', 'en_observacion'])->count();
+                $aprobados = $anticipos->where('estado', 'aprobado')->count();
+                $rechazados = $anticipos->where('estado', 'rechazado')->count();
             }
-            $total = $comprobantes->count();
+            $total = $anticipos->count();
         }
     @endphp
 
@@ -155,6 +157,7 @@
                 <div>
                     <p class="text-sm font-medium text-gray-600 mb-1">Pendientes</p>
                     <p class="text-3xl font-bold text-yellow-600">{{ $pendientes }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
                 </div>
                 <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                     <i class="fas fa-clock text-yellow-600 text-xl"></i>
@@ -167,6 +170,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-1">Aprobados</p>
                         <p class="text-3xl font-bold text-green-600">{{ $aprobados }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-check-circle text-green-600 text-xl"></i>
@@ -179,6 +183,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-1">Rechazados</p>
                         <p class="text-3xl font-bold text-red-600">{{ $rechazados }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
                     </div>
                     <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-times-circle text-red-600 text-xl"></i>
@@ -191,6 +196,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-1">Total</p>
                         <p class="text-3xl font-bold text-blue-600">{{ $total }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
