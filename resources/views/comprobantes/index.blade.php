@@ -315,7 +315,19 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($anticipo->estado === 'completo')
+                                        @if($anticipo->estado === 'aprobado')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-check-circle mr-1"></i>Aprobado
+                                            </span>
+                                        @elseif($anticipo->estado === 'rechazado')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-times-circle mr-1"></i>Rechazado
+                                            </span>
+                                        @elseif($anticipo->estado === 'en_observacion')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-eye mr-1"></i>En observación
+                                            </span>
+                                        @elseif($anticipo->estado === 'completo')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 <i class="fas fa-check-circle mr-1"></i>Completo
                                             </span>
@@ -326,11 +338,15 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{ route('comprobantes.create', ['anticipo_id' => $anticipo->id]) }}"
-                                           class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center space-x-2">
-                                            <i class="fas fa-file-upload"></i>
-                                            <span>Subir Comprobante</span>
-                                        </a>
+                                        @if(!in_array($anticipo->estado, ['aprobado', 'rechazado']))
+                                            <a href="{{ route('comprobantes.create', ['anticipo_id' => $anticipo->id]) }}"
+                                               class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center space-x-2">
+                                                <i class="fas fa-file-upload"></i>
+                                                <span>Subir Comprobante</span>
+                                            </a>
+                                        @else
+                                            <span class="text-xs text-gray-500 italic">No disponible</span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @if($anticipo->comprobantes->count() > 0)
@@ -370,6 +386,10 @@
                                                                 @elseif($comprobante->estado === 'rechazado')
                                                                     <span class="text-xs text-red-600 font-medium">
                                                                         <i class="fas fa-times-circle mr-1"></i>Rechazado
+                                                                    </span>
+                                                                @elseif($comprobante->estado === 'en_observacion')
+                                                                    <span class="text-xs text-blue-600 font-medium">
+                                                                        <i class="fas fa-eye mr-1"></i>En observación
                                                                     </span>
                                                                 @else
                                                                     <span class="text-xs text-yellow-600 font-medium">

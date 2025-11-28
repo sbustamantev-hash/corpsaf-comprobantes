@@ -107,6 +107,11 @@ class ComprobanteController extends Controller
             if ($anticipo->user_id !== $user->id) {
                 abort(403, 'No tienes permisos para subir comprobantes de este anticipo.');
             }
+
+            // No permitir crear comprobantes si el anticipo está aprobado o rechazado
+            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes subir comprobantes a un anticipo que ha sido aprobado o rechazado.');
+            }
         }
 
         $tiposComprobante = TipoComprobante::where('activo', true)
@@ -147,6 +152,11 @@ class ComprobanteController extends Controller
 
             if ($anticipo->user_id !== $user->id) {
                 abort(403, 'No puedes registrar comprobantes para este anticipo.');
+            }
+
+            // No permitir crear comprobantes si el anticipo está aprobado o rechazado
+            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes subir comprobantes a un anticipo que ha sido aprobado o rechazado.');
             }
         }
 
@@ -223,6 +233,13 @@ class ComprobanteController extends Controller
             abort(403, 'No puedes modificar un comprobante aprobado o rechazado.');
         }
 
+        // No permitir edición si el anticipo asociado está aprobado o rechazado
+        if ($comprobante->anticipo) {
+            if (in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes modificar comprobantes de un anticipo que ha sido aprobado o rechazado.');
+            }
+        }
+
         return view('comprobantes.edit', compact('comprobante'));
     }
 
@@ -246,6 +263,18 @@ class ComprobanteController extends Controller
         // Si es operador, solo puede actualizar sus propios comprobantes
         if (!$user->isAdmin() && $comprobante->user_id !== $user->id) {
             abort(403, 'No tienes permisos para actualizar este comprobante.');
+        }
+
+        // No permitir edición si el comprobante ya fue aprobado o rechazado
+        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
+            abort(403, 'No puedes modificar un comprobante aprobado o rechazado.');
+        }
+
+        // No permitir edición si el anticipo asociado está aprobado o rechazado
+        if ($comprobante->anticipo) {
+            if (in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes modificar comprobantes de un anticipo que ha sido aprobado o rechazado.');
+            }
         }
 
         if ($request->hasFile('archivo')) {

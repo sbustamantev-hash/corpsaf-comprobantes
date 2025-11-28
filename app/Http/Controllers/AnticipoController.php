@@ -229,6 +229,53 @@ class AnticipoController extends Controller
     }
 
     /**
+     * Poner anticipo en observación
+     */
+    public function enObservacion(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        // Solo super admin y area admin pueden poner en observación
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores pueden poner anticipos en observación.');
+        }
+
+        $request->validate([
+            'mensaje' => 'required|string|min:10',
+        ]);
+
+        $anticipo = Anticipo::with(['area', 'comprobantes'])->findOrFail($id);
+
+        // Area admin solo puede poner en observación anticipos de su Empresa
+        if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes poner en observación anticipos de tu Empresa.');
+        }
+
+        // Cambiar estado
+        $anticipo->estado = 'en_observacion';
+        $anticipo->save();
+
+        // Poner todos los comprobantes del anticipo en observación también
+        foreach ($anticipo->comprobantes as $comprobante) {
+            if (!in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
+                $comprobante->estado = 'en_observacion';
+                $comprobante->save();
+
+                // Crear observación para cada comprobante
+                \App\Models\Observacion::create([
+                    'comprobante_id' => $comprobante->id,
+                    'user_id' => $user->id,
+                    'mensaje' => $request->mensaje,
+                    'tipo' => 'observacion',
+                ]);
+            }
+        }
+
+        return redirect()->route('anticipos.show', $anticipo->id)
+            ->with('success', 'Anticipo puesto en observación. El usuario podrá modificar sus comprobantes.');
+    }
+
+    /**
      * Exportar anticipo a PDF
      */
     public function exportPdf($id)

@@ -81,6 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::get('anticipos/{anticipo}', [AnticipoController::class, 'show'])->name('anticipos.show');
     Route::post('anticipos/{anticipo}/aprobar', [AnticipoController::class, 'aprobar'])->name('anticipos.aprobar');
     Route::post('anticipos/{anticipo}/rechazar', [AnticipoController::class, 'rechazar'])->name('anticipos.rechazar');
+    Route::post('anticipos/{anticipo}/observacion', [AnticipoController::class, 'enObservacion'])->name('anticipos.observacion');
     Route::get('anticipos/{anticipo}/export/pdf', [AnticipoController::class, 'exportPdf'])->name('anticipos.export.pdf');
     Route::get('anticipos/{anticipo}/export/excel', [AnticipoController::class, 'exportExcel'])->name('anticipos.export.excel');
 });

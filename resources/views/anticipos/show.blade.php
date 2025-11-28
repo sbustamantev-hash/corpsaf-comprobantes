@@ -16,6 +16,11 @@
                     <i class="fas fa-file-pdf mr-2"></i>Exportar PDF
                 </a>
                 <button type="button" 
+                        onclick="openObservationModal()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                    <i class="fas fa-eye mr-2"></i>En observación
+                </button>
+                <button type="button" 
                         onclick="openRejectModal()"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
                     <i class="fas fa-times mr-2"></i>Rechazar
@@ -70,17 +75,21 @@
                 {{ ucfirst($anticipo->tipo) }} #{{ $anticipo->id }}
             </h1>
             <div>
-                @if($anticipo->estado === 'completo')
+                @if($anticipo->estado === 'aprobado')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        <i class="fas fa-check-circle mr-1"></i>Completo
-                    </span>
-                @elseif($anticipo->estado === 'aprobado')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                         <i class="fas fa-check-circle mr-1"></i>Aprobado
                     </span>
                 @elseif($anticipo->estado === 'rechazado')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                         <i class="fas fa-times-circle mr-1"></i>Rechazado
+                    </span>
+                @elseif($anticipo->estado === 'en_observacion')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        <i class="fas fa-eye mr-1"></i>En observación
+                    </span>
+                @elseif($anticipo->estado === 'completo')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        <i class="fas fa-check-circle mr-1"></i>Completo
                     </span>
                 @else
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
@@ -337,10 +346,53 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Modal En Observación -->
+            <div id="observationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Poner Anticipo en Observación</h3>
+                    <form action="{{ route('anticipos.observacion', $anticipo->id) }}" method="POST">
+                        @csrf
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Mensaje de observación (obligatorio):
+                            </label>
+                            <textarea name="mensaje" 
+                                      rows="4"
+                                      required
+                                      minlength="10"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('mensaje') border-red-500 @enderror"
+                                      placeholder="Explica qué necesita corregir el usuario...">{{ old('mensaje') }}</textarea>
+                            @error('mensaje')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex items-center justify-end space-x-3">
+                            <button type="button" 
+                                    onclick="closeObservationModal()"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                Cancelar
+                            </button>
+                            <button type="submit" 
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                                <i class="fas fa-eye mr-2"></i>Poner en Observación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         @endif
     @endauth
 
     <script>
+        function openObservationModal() {
+            document.getElementById('observationModal').classList.remove('hidden');
+        }
+
+        function closeObservationModal() {
+            document.getElementById('observationModal').classList.add('hidden');
+        }
+
         function openApproveModal() {
             document.getElementById('approveModal').classList.remove('hidden');
         }
