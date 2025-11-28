@@ -259,7 +259,7 @@ class ComprobanteController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $comprobante = Comprobante::with(['user', 'concepto'])->findOrFail($id);
+        $comprobante = Comprobante::with(['user', 'concepto', 'anticipo'])->findOrFail($id);
 
         // Solo operadores pueden editar
         if (!$user->isOperador()) {
@@ -283,14 +283,18 @@ class ComprobanteController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('comprobantes.edit', compact('comprobante', 'conceptos'));
+        $tiposComprobante = TipoComprobante::where('activo', true)
+            ->orderBy('codigo')
+            ->get();
+
+        return view('comprobantes.edit', compact('comprobante', 'conceptos', 'tiposComprobante'));
     }
 
     // ACTUALIZAR BD
     public function update(Request $request, $id)
     {
         $rules = [
-            'tipo' => 'required|string|max:50',
+            'tipo' => 'required|exists:tipos_comprobante,codigo',
             'concepto' => 'required|exists:conceptos,id',
             'ruc_empresa' => 'required|string|max:20',
             'serie' => ['required', 'alpha_num', 'max:4'],
