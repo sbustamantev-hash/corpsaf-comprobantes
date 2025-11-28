@@ -181,8 +181,12 @@ class ComprobanteController extends Controller
             'estado' => 'pendiente'
         ]);
 
-        // El estado del anticipo solo cambia cuando un admin lo aprueba o rechaza manualmente
-        // No se cambia automáticamente aunque se alcance el monto
+        // Si se agregó un nuevo comprobante a un anticipo que estaba "aprobado",
+        // cambiar el estado del anticipo a "pendiente" porque ahora hay un comprobante pendiente
+        if ($anticipo && $anticipo->estado === 'aprobado') {
+            $anticipo->estado = 'pendiente';
+            $anticipo->save();
+        }
 
         return redirect()->route('comprobantes.index')
             ->with('success', 'Comprobante registrado correctamente.');
@@ -303,11 +307,21 @@ class ComprobanteController extends Controller
         $comprobante->detalle = $request->detalle;
 
         // Si estaba en observación, vuelve a pendiente para revisión
+        $estadoAnterior = $comprobante->estado;
         if ($comprobante->estado === 'en_observacion') {
             $comprobante->estado = 'pendiente';
         }
 
         $comprobante->save();
+
+        // Si el anticipo estaba "aprobado" y se editó un comprobante, cambiar el anticipo a "pendiente"
+        if ($comprobante->anticipo_id && $estadoAnterior !== 'aprobado') {
+            $anticipo = $comprobante->anticipo;
+            if ($anticipo->estado === 'aprobado') {
+                $anticipo->estado = 'pendiente';
+                $anticipo->save();
+            }
+        }
 
         return redirect()->route('comprobantes.index')
             ->with('success', 'Comprobante actualizado correctamente.');
@@ -417,6 +431,12 @@ class ComprobanteController extends Controller
             if (!$noAprobados) {
                 $anticipo->estado = 'aprobado';
                 $anticipo->save();
+            } else {
+                // Si hay comprobantes no aprobados y el anticipo estaba "aprobado", cambiarlo a "pendiente"
+                if ($anticipo->estado === 'aprobado') {
+                    $anticipo->estado = 'pendiente';
+                    $anticipo->save();
+                }
             }
         }
 
@@ -457,6 +477,24 @@ class ComprobanteController extends Controller
             'mensaje' => $request->mensaje,
             'tipo' => 'rechazo',
         ]);
+
+        // Actualizar estado del anticipo si tiene uno asociado
+        if ($comprobante->anticipo_id) {
+            $anticipo = $comprobante->anticipo;
+            
+            // Si el anticipo estaba "aprobado", cambiarlo a "pendiente" porque ahora hay un comprobante rechazado
+            if ($anticipo->estado === 'aprobado') {
+                $anticipo->estado = 'pendiente';
+                $anticipo->save();
+            }
+            
+            // Verificar si todos los comprobantes están rechazados
+            $todosRechazados = $anticipo->comprobantes()->where('estado', '!=', 'rechazado')->doesntExist();
+            if ($todosRechazados && $anticipo->comprobantes->count() > 0) {
+                $anticipo->estado = 'rechazado';
+                $anticipo->save();
+            }
+        }
 
         return redirect()->route('comprobantes.show', $comprobante->id)
             ->with('success', 'Comprobante rechazado correctamente.');
@@ -514,6 +552,15 @@ class ComprobanteController extends Controller
         if (($user->isAdmin() || $user->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'aprobado', 'rechazado'])) {
             $comprobante->estado = 'en_observacion';
             $comprobante->save();
+            
+            // Si el anticipo estaba "aprobado", cambiarlo a "pendiente" porque ahora hay un comprobante en observación
+            if ($comprobante->anticipo_id) {
+                $anticipo = $comprobante->anticipo;
+                if ($anticipo->estado === 'aprobado') {
+                    $anticipo->estado = 'pendiente';
+                    $anticipo->save();
+                }
+            }
         }
 
         return redirect()->route('comprobantes.show', $comprobante->id)
