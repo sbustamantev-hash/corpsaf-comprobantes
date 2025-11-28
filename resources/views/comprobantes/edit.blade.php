@@ -22,6 +22,21 @@
                     <p class="mt-1 text-xs text-gray-500">El trabajador no puede ser modificado</p>
                 </div>
 
+                {{-- RUC de la Empresa --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">RUC de la Empresa <span class="text-red-500">*</span></label>
+                    <input type="text"
+                           name="ruc_empresa"
+                           required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('ruc_empresa') border-red-500 @enderror"
+                           value="{{ old('ruc_empresa', $comprobante->ruc_empresa) }}"
+                           placeholder="Ingresa el RUC de tu empresa">
+                    <p class="mt-1 text-xs text-gray-500">Corresponde a la empresa que te brinda el servicio</p>
+                    @error('ruc_empresa')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 {{-- Tipo --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante <span class="text-red-500">*</span></label>

@@ -23,7 +23,6 @@ class Comprobante extends Model
         'fecha',
         'detalle',
         'archivo',
-        'estado'
     ];
 
     protected $casts = [

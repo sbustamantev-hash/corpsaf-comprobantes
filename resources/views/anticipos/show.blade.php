@@ -5,7 +5,7 @@
 
 @section('header-actions')
     @auth
-        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo']))
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo', 'en_observacion']))
             <div class="flex items-center space-x-3">
                 <a href="{{ route('anticipos.export.excel', $anticipo->id) }}" 
                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
@@ -81,6 +81,10 @@
                 @elseif($anticipo->estado === 'rechazado')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                         <i class="fas fa-times-circle mr-1"></i>Rechazado
+                    </span>
+                @elseif($anticipo->estado === 'en_observacion')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        <i class="fas fa-eye mr-1"></i>En observación
                     </span>
                 @else
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
@@ -178,7 +182,6 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                                 </tr>
                             </thead>
@@ -189,25 +192,6 @@
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $comprobante->tipo }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $comprobante->fecha }}</td>
                                         <td class="px-4 py-3 text-sm font-semibold text-gray-900">S/ {{ number_format($comprobante->monto, 2) }}</td>
-                                        <td class="px-4 py-3 text-sm">
-                                            @if($comprobante->estado === 'aprobado')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    <i class="fas fa-check-circle mr-1"></i>Aprobado
-                                                </span>
-                                            @elseif($comprobante->estado === 'rechazado')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                    <i class="fas fa-times-circle mr-1"></i>Rechazado
-                                                </span>
-                                            @elseif($comprobante->estado === 'en_observacion')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                    <i class="fas fa-eye mr-1"></i>En observación
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                    <i class="fas fa-clock mr-1"></i>Pendiente
-                                                </span>
-                                            @endif
-                                        </td>
                                         <td class="px-4 py-3 text-sm font-medium">
                                             <div class="flex items-center space-x-2">
                                                 <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
@@ -217,7 +201,7 @@
                                                 </a>
                                                 @if(
                                                     Auth::id() === $comprobante->user_id &&
-                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado'])
+                                                    !in_array($anticipo->estado, ['aprobado', 'rechazado'])
                                                 )
                                                     <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
                                                        class="text-yellow-600 hover:text-yellow-900"
@@ -267,7 +251,7 @@
 
     <!-- Modales para Aprobar/Rechazar -->
     @auth
-        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo']))
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo', 'en_observacion']))
             <!-- Modal Aprobar -->
             <div id="approveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                 <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">

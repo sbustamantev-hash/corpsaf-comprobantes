@@ -409,15 +409,17 @@ class AnticipoController extends Controller
         
         // Cuadro detallado de comprobantes
         $data[] = ['DETALLE DE COMPROBANTES'];
-        $data[] = ['FECHA', 'NÚMERO DE RUC', 'NÚMERO DE SERIE', 'NÚMERO DE COMPROBANTE', 'MONTO'];
+        $data[] = ['Nº', 'FECHA', 'EMPRESA', 'PROVEEDOR', 'NUM DE SERIE', 'NUMERO DE COMPROBANTE', 'MONTO'];
         
         foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
             $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
                 ? $comprobante->fecha
                 : Carbon::parse($comprobante->fecha);
             $data[] = [
+                $comprobante->id,
                 $fechaComprobante->format('d/m/Y'),
-                $anticipo->area->codigo ?? '-',
+                $anticipo->area->nombre ?? '-',
+                $comprobante->ruc_empresa ?? '-',
                 $comprobante->serie ?? '-',
                 $comprobante->numero ?? '-',
                 number_format($comprobante->monto, 2)
@@ -527,14 +529,16 @@ class AnticipoController extends Controller
         $html .= '<div class="info-row" style="margin-top: 20px;"><span class="info-label">' . $diferenciaLabel . '</span><span class="info-value">' . number_format(abs($diferencia), 2) . '</span></div>';
         
         // Cuadro detallado de comprobantes
-        $html .= '<table style="margin-top: 20px;"><thead><tr><th>FECHA</th><th>NÚMERO DE RUC</th><th>NÚMERO DE SERIE</th><th>NÚMERO DE COMPROBANTE</th><th class="text-right">MONTO</th></tr></thead><tbody>';
+        $html .= '<table style="margin-top: 20px;"><thead><tr><th>Nº</th><th>FECHA</th><th>EMPRESA</th><th>PROVEEDOR</th><th>NUM DE SERIE</th><th>NUMERO DE COMPROBANTE</th><th class="text-right">MONTO</th></tr></thead><tbody>';
         foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
             $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
                 ? $comprobante->fecha
                 : Carbon::parse($comprobante->fecha);
             $html .= '<tr>
+                <td>' . $comprobante->id . '</td>
                 <td>' . $fechaComprobante->format('d/m/Y') . '</td>
-                <td>' . ($anticipo->area->codigo ?? '-') . '</td>
+                <td>' . ($anticipo->area->nombre ?? '-') . '</td>
+                <td>' . ($comprobante->ruc_empresa ?? '-') . '</td>
                 <td>' . ($comprobante->serie ?? '-') . '</td>
                 <td>' . ($comprobante->numero ?? '-') . '</td>
                 <td class="text-right">' . number_format($comprobante->monto, 2) . '</td>

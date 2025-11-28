@@ -45,9 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('comprobantes', ComprobanteController::class);
     Route::get('comprobantes/{id}/archivo', [ComprobanteController::class, 'download'])->name('comprobantes.download');
 
-    // Rutas para aprobar/rechazar y observaciones
-    Route::post('comprobantes/{id}/aprobar', [ComprobanteController::class, 'aprobar'])->name('comprobantes.aprobar');
-    Route::post('comprobantes/{id}/rechazar', [ComprobanteController::class, 'rechazar'])->name('comprobantes.rechazar');
+    // Rutas para observaciones
     Route::post('comprobantes/{id}/observacion', [ComprobanteController::class, 'agregarObservacion'])->name('comprobantes.observacion');
     Route::get('observaciones/{id}/archivo', [ComprobanteController::class, 'downloadObservacion'])->name('observaciones.download');
 

@@ -83,7 +83,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(8),
                 'detalle' => 'Combustible para viaje a provincia',
                 'archivo' => null,
-                'estado' => 'pendiente',
             ]);
 
             $comprobante1_2 = Comprobante::create([
@@ -97,7 +96,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(7),
                 'detalle' => 'Almuerzo durante viaje',
                 'archivo' => null,
-                'estado' => 'pendiente',
             ]);
 
             // ANTICIPO 2: Con comprobantes aprobados y pendientes
@@ -126,7 +124,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(12),
                 'detalle' => 'Materiales de oficina',
                 'archivo' => null,
-                'estado' => 'aprobado',
             ]);
 
             // Crear observación de aprobación
@@ -148,7 +145,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(10),
                 'detalle' => 'Herramientas y equipos',
                 'archivo' => null,
-                'estado' => 'pendiente',
             ]);
 
             // ANTICIPO 3: Con comprobante en observación
@@ -162,7 +158,7 @@ class DatosPruebaSeeder extends Seeder
                 'tipo_rendicion_id' => $tipoRendicion->id,
                 'importe' => 800.00,
                 'descripcion' => 'Anticipo para servicios profesionales',
-                'estado' => 'pendiente',
+                'estado' => 'en_observacion',
             ]);
 
             $comprobante3_1 = Comprobante::create([
@@ -176,7 +172,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(18),
                 'detalle' => 'Servicios de consultoría',
                 'archivo' => null,
-                'estado' => 'en_observacion',
             ]);
 
             // Crear observación
@@ -212,7 +207,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(23),
                 'detalle' => 'Gastos de transporte',
                 'archivo' => null,
-                'estado' => 'aprobado',
             ]);
 
             Observacion::create([
@@ -233,7 +227,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(22),
                 'detalle' => 'Gastos de alimentación',
                 'archivo' => null,
-                'estado' => 'aprobado',
             ]);
 
             Observacion::create([
@@ -268,7 +261,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(3),
                 'detalle' => 'Gastos médicos',
                 'archivo' => null,
-                'estado' => 'pendiente',
             ]);
 
             $comprobanteR1_2 = Comprobante::create([
@@ -282,10 +274,9 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(2),
                 'detalle' => 'Gastos de estacionamiento',
                 'archivo' => null,
-                'estado' => 'pendiente',
             ]);
 
-            // REEMBOLSO 2: Con comprobante rechazado
+            // REEMBOLSO 2: Rechazado
             $reembolso2 = Anticipo::create([
                 'area_id' => $area->id,
                 'user_id' => $operador->id,
@@ -296,7 +287,7 @@ class DatosPruebaSeeder extends Seeder
                 'tipo_rendicion_id' => null,
                 'importe' => null,
                 'descripcion' => 'Reembolso de gastos de representación',
-                'estado' => 'pendiente',
+                'estado' => 'rechazado',
             ]);
 
             $comprobanteR2_1 = Comprobante::create([
@@ -310,7 +301,6 @@ class DatosPruebaSeeder extends Seeder
                 'fecha' => Carbon::now()->subDays(28),
                 'detalle' => 'Cena de negocios',
                 'archivo' => null,
-                'estado' => 'rechazado',
             ]);
 
             Observacion::create([
@@ -327,9 +317,9 @@ class DatosPruebaSeeder extends Seeder
         }
 
         $this->command->info('Datos de prueba creados exitosamente!');
-        $this->command->info('- Anticipos con diferentes estados');
+        $this->command->info('- Anticipos con diferentes estados (pendiente, aprobado, rechazado, en_observacion)');
         $this->command->info('- Reembolsos con comprobantes');
-        $this->command->info('- Comprobantes aprobados, pendientes, rechazados y en observación');
+        $this->command->info('- Comprobantes asociados a anticipos');
         $this->command->info('- Observaciones asociadas');
     }
 }

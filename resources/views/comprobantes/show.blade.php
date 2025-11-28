@@ -5,24 +5,19 @@
 
 @section('header-actions')
     @auth
-        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'en_observacion']))
-            <div class="flex items-center space-x-3">
-                <button type="button" 
-                        onclick="openRejectModal()"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
-                    Rechazar
-                </button>
-                <button type="button" 
-                        onclick="openCorrectionModal()"
-                        class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition font-medium">
-                    Solicitar Corrección
-                </button>
-                <button type="button" 
-                        onclick="openApproveModal()"
-                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
-                    Aprobar
-                </button>
-            </div>
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && $comprobante->anticipo_id)
+            @php
+                $anticipo = $comprobante->anticipo;
+            @endphp
+            @if(!in_array($anticipo->estado, ['aprobado', 'rechazado']))
+                <div class="flex items-center space-x-3">
+                    <button type="button" 
+                            onclick="openCorrectionModal()"
+                            class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition font-medium">
+                        Solicitar Corrección
+                    </button>
+                </div>
+            @endif
         @endif
     @endauth
 @endsection
@@ -49,30 +44,9 @@
     </nav>
 </div>
 
-<!-- Header con número y estado -->
-<div class="mb-6 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-        <h1 class="text-3xl font-bold text-gray-900">Comprobante #{{ $comprobante->id }}</h1>
-        <div>
-            @if($comprobante->estado === 'aprobado')
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    Aprobado
-                </span>
-            @elseif($comprobante->estado === 'rechazado')
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                    Rechazado
-                </span>
-            @elseif($comprobante->estado === 'en_observacion')
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                    En observación
-                </span>
-            @else
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                    Pendiente
-                </span>
-            @endif
-        </div>
-    </div>
+<!-- Header con número -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Comprobante #{{ $comprobante->id }}</h1>
 </div>
 
 <div class="flex flex-col lg:flex-row gap-6">
@@ -314,165 +288,49 @@
 
 <!-- Modales para Aprobar/Rechazar -->
 @auth
-    @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'en_observacion']))
-        <!-- Modal Aprobar -->
-        <div id="approveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">Aprobar Comprobante</h3>
-                <form action="{{ route('comprobantes.aprobar', $comprobante->id) }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Mensaje de aprobación (obligatorio):
-                        </label>
-                        <textarea name="mensaje" 
-                                  rows="4"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 @error('mensaje') border-red-500 @enderror" 
-                                  required 
-                                  placeholder="Escribe el motivo de la aprobación..."></textarea>
-                        @error('mensaje')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="flex items-center justify-end space-x-3">
-                        <button type="button" 
-                                onclick="closeApproveModal()"
-                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
-                            <i class="fas fa-check mr-2"></i>Aprobar
-                        </button>
-                    </div>
-                </form>
+    @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && $comprobante->anticipo_id)
+        @php
+            $anticipo = $comprobante->anticipo;
+        @endphp
+        @if(!in_array($anticipo->estado, ['aprobado', 'rechazado']))
+            <!-- Modal Solicitar Corrección -->
+            <div id="correctionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Solicitar Corrección</h3>
+                    <form action="{{ route('comprobantes.observacion', $comprobante->id) }}" method="POST">
+                        @csrf
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Detalle de la corrección solicitada:
+                            </label>
+                            <textarea name="mensaje" 
+                                      rows="4"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 @error('mensaje') border-red-500 @enderror" 
+                                      required 
+                                      minlength="2"
+                                      placeholder="Indica qué debe corregir el usuario..."></textarea>
+                            @error('mensaje')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex items-center justify-end space-x-3">
+                            <button type="button" 
+                                    onclick="closeCorrectionModal()"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition font-medium">
+                                <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitud
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- Modal Solicitar Corrección -->
-        <div id="correctionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">Solicitar Corrección</h3>
-                <form action="{{ route('comprobantes.observacion', $comprobante->id) }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Detalle de la corrección solicitada:
-                        </label>
-                        <textarea name="mensaje" 
-                                  rows="4"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 @error('mensaje') border-red-500 @enderror" 
-                                  required 
-                                  minlength="2"
-                                  placeholder="Indica qué debe corregir el usuario..."></textarea>
-                        @error('mensaje')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="flex items-center justify-end space-x-3">
-                        <button type="button" 
-                                onclick="closeCorrectionModal()"
-                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition font-medium">
-                            <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitud
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Modal Rechazar -->
-        <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">Rechazar Comprobante</h3>
-                <form action="{{ route('comprobantes.rechazar', $comprobante->id) }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Mensaje de rechazo (obligatorio):
-                        </label>
-                        <textarea name="mensaje" 
-                                  rows="4"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 @error('mensaje') border-red-500 @enderror" 
-                                  required 
-                                  placeholder="Escribe el motivo del rechazo..."></textarea>
-                        @error('mensaje')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="flex items-center justify-end space-x-3">
-                        <button type="button" 
-                                onclick="closeRejectModal()"
-                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
-                            <i class="fas fa-times mr-2"></i>Rechazar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Modal Solicitar Corrección -->
-        <div id="correctionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">Solicitar Corrección</h3>
-                <form action="{{ route('comprobantes.observacion', $comprobante->id) }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Detalle de la corrección solicitada:
-                        </label>
-                        <textarea name="mensaje" 
-                                  rows="4"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 @error('mensaje') border-red-500 @enderror" 
-                                  required 
-                                  minlength="2"
-                                  placeholder="Indica qué debe corregir el usuario..."></textarea>
-                        @error('mensaje')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="flex items-center justify-end space-x-3">
-                        <button type="button" 
-                                onclick="closeCorrectionModal()"
-                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition font-medium">
-                            <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitud
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <script>
-            function openApproveModal() {
-                document.getElementById('approveModal').classList.remove('hidden');
-            }
-            function closeApproveModal() {
-                document.getElementById('approveModal').classList.add('hidden');
-            }
-            function openRejectModal() {
-                document.getElementById('rejectModal').classList.remove('hidden');
-            }
-            function closeRejectModal() {
-                document.getElementById('rejectModal').classList.add('hidden');
-            }
-            // Cerrar modal al hacer click fuera
-            document.getElementById('approveModal')?.addEventListener('click', function(e) {
-                if (e.target === this) closeApproveModal();
-            });
-            document.getElementById('rejectModal')?.addEventListener('click', function(e) {
-                if (e.target === this) closeRejectModal();
-            });
-
-            function openCorrectionModal() {
-                document.getElementById('correctionModal').classList.remove('hidden');
-            }
+            <script>
+                function openCorrectionModal() {
+                    document.getElementById('correctionModal').classList.remove('hidden');
+                }
             function closeCorrectionModal() {
                 document.getElementById('correctionModal').classList.add('hidden');
             }

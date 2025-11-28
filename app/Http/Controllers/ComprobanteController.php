@@ -174,15 +174,15 @@ class ComprobanteController extends Controller
             'concepto_otro' => $validated['concepto_otro'] ?? null,
             'serie' => $serie,
             'numero' => $numero,
+            'ruc_empresa' => $validated['ruc_empresa'],
             'monto' => $validated['monto'],
             'fecha' => $validated['fecha'],
             'detalle' => $validated['detalle'] ?? null,
             'archivo' => $archivoPath,
-            'estado' => 'pendiente'
         ]);
 
         // Si se agregó un nuevo comprobante a un anticipo que estaba "aprobado",
-        // cambiar el estado del anticipo a "pendiente" porque ahora hay un comprobante pendiente
+        // cambiar el estado del anticipo a "pendiente" porque ahora hay un nuevo comprobante
         if ($anticipo && $anticipo->estado === 'aprobado') {
             $anticipo->estado = 'pendiente';
             $anticipo->save();
@@ -237,9 +237,12 @@ class ComprobanteController extends Controller
             abort(403, 'No tienes permisos para editar este comprobante.');
         }
 
-        // No permitir edición si el comprobante ya fue aprobado o rechazado
-        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
-            abort(403, 'No puedes modificar un comprobante aprobado o rechazado.');
+        // No permitir edición si el anticipo asociado está aprobado o rechazado
+        if ($comprobante->anticipo_id) {
+            $anticipo = $comprobante->anticipo;
+            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes modificar comprobantes de un anticipo aprobado o rechazado.');
+            }
         }
 
         $conceptos = \App\Models\Concepto::where('activo', true)
@@ -255,6 +258,7 @@ class ComprobanteController extends Controller
         $rules = [
             'tipo' => 'required|string|max:50',
             'concepto' => 'required|exists:conceptos,id',
+            'ruc_empresa' => 'required|string|max:20',
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
@@ -280,9 +284,12 @@ class ComprobanteController extends Controller
             abort(403, 'No tienes permisos para actualizar este comprobante.');
         }
 
-        // No permitir edición si el comprobante ya fue aprobado o rechazado
-        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
-            abort(403, 'No puedes modificar un comprobante aprobado o rechazado.');
+        // No permitir edición si el anticipo asociado está aprobado o rechazado
+        if ($comprobante->anticipo_id) {
+            $anticipo = $comprobante->anticipo;
+            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes modificar comprobantes de un anticipo aprobado o rechazado.');
+            }
         }
 
         if ($request->hasFile('archivo')) {
@@ -302,22 +309,17 @@ class ComprobanteController extends Controller
         $comprobante->concepto_otro = strtoupper($conceptoModel->nombre) === 'OTROS' ? $request->concepto_otro : null;
         $comprobante->serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
         $comprobante->numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
+        $comprobante->ruc_empresa = $request->ruc_empresa;
         $comprobante->monto = $request->monto;
         $comprobante->fecha = $request->fecha;
         $comprobante->detalle = $request->detalle;
 
-        // Si estaba en observación, vuelve a pendiente para revisión
-        $estadoAnterior = $comprobante->estado;
-        if ($comprobante->estado === 'en_observacion') {
-            $comprobante->estado = 'pendiente';
-        }
-
         $comprobante->save();
 
-        // Si el anticipo estaba "aprobado" y se editó un comprobante, cambiar el anticipo a "pendiente"
-        if ($comprobante->anticipo_id && $estadoAnterior !== 'aprobado') {
+        // Si el anticipo estaba "aprobado" o "en_observacion" y se editó un comprobante, cambiar el anticipo a "pendiente"
+        if ($comprobante->anticipo_id) {
             $anticipo = $comprobante->anticipo;
-            if ($anticipo->estado === 'aprobado') {
+            if (in_array($anticipo->estado, ['aprobado', 'en_observacion'])) {
                 $anticipo->estado = 'pendiente';
                 $anticipo->save();
             }
@@ -385,121 +387,6 @@ class ComprobanteController extends Controller
         return response()->file($filePath);
     }
 
-    // APROBAR COMPROBANTE (super admin y area admin)
-    public function aprobar(Request $request, $id)
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        // Solo super admin y area admin pueden aprobar
-        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
-            abort(403, 'Solo los administradores pueden aprobar comprobantes.');
-        }
-
-        $request->validate([
-            'mensaje' => 'required|string|min:2',
-        ]);
-
-        $comprobante = Comprobante::with('user')->findOrFail($id);
-
-        // Area admin solo puede aprobar comprobantes de su Empresa
-        if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
-            abort(403, 'Solo puedes aprobar comprobantes de tu Empresa.');
-        }
-
-        // Cambiar estado
-        $comprobante->estado = 'aprobado';
-        $comprobante->save();
-
-        // Crear observación de aprobación
-        Observacion::create([
-            'comprobante_id' => $comprobante->id,
-            'user_id' => $user->id,
-            'mensaje' => $request->mensaje,
-            'tipo' => 'aprobacion',
-        ]);
-
-        // Verificar si todos los comprobantes del anticipo están aprobados
-        if ($comprobante->anticipo_id) {
-            $anticipo = $comprobante->anticipo;
-
-            // Verificar si existen comprobantes que NO estén aprobados
-            // Esto incluye pendientes, en_observacion, rechazados
-            $noAprobados = $anticipo->comprobantes()->where('estado', '!=', 'aprobado')->exists();
-
-            // Si NO hay comprobantes no aprobados (es decir, todos están aprobados)
-            if (!$noAprobados) {
-                $anticipo->estado = 'aprobado';
-                $anticipo->save();
-            } else {
-                // Si hay comprobantes no aprobados y el anticipo estaba "aprobado", cambiarlo a "pendiente"
-                if ($anticipo->estado === 'aprobado') {
-                    $anticipo->estado = 'pendiente';
-                    $anticipo->save();
-                }
-            }
-        }
-
-        return redirect()->route('comprobantes.show', $comprobante->id)
-            ->with('success', 'Comprobante aprobado correctamente.');
-    }
-
-    // RECHAZAR COMPROBANTE (super admin y area admin)
-    public function rechazar(Request $request, $id)
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        // Solo super admin y area admin pueden rechazar
-        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
-            abort(403, 'Solo los administradores pueden rechazar comprobantes.');
-        }
-
-        $request->validate([
-            'mensaje' => 'required|string|min:2',
-        ]);
-
-        $comprobante = Comprobante::with('user')->findOrFail($id);
-
-        // Area admin solo puede rechazar comprobantes de su Empresa
-        if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
-            abort(403, 'Solo puedes rechazar comprobantes de tu Empresa.');
-        }
-
-        // Cambiar estado
-        $comprobante->estado = 'rechazado';
-        $comprobante->save();
-
-        // Crear observación de rechazo
-        Observacion::create([
-            'comprobante_id' => $comprobante->id,
-            'user_id' => $user->id,
-            'mensaje' => $request->mensaje,
-            'tipo' => 'rechazo',
-        ]);
-
-        // Actualizar estado del anticipo si tiene uno asociado
-        if ($comprobante->anticipo_id) {
-            $anticipo = $comprobante->anticipo;
-            
-            // Si el anticipo estaba "aprobado", cambiarlo a "pendiente" porque ahora hay un comprobante rechazado
-            if ($anticipo->estado === 'aprobado') {
-                $anticipo->estado = 'pendiente';
-                $anticipo->save();
-            }
-            
-            // Verificar si todos los comprobantes están rechazados
-            $todosRechazados = $anticipo->comprobantes()->where('estado', '!=', 'rechazado')->doesntExist();
-            if ($todosRechazados && $anticipo->comprobantes->count() > 0) {
-                $anticipo->estado = 'rechazado';
-                $anticipo->save();
-            }
-        }
-
-        return redirect()->route('comprobantes.show', $comprobante->id)
-            ->with('success', 'Comprobante rechazado correctamente.');
-    }
-
     // AGREGAR OBSERVACIÓN (cualquier usuario autenticado con acceso)
     public function agregarObservacion(Request $request, $id)
     {
@@ -547,19 +434,14 @@ class ComprobanteController extends Controller
             'archivo' => $archivoPath,
         ]);
 
-        // Si un administrador deja una observación, marcar el comprobante como "en_observacion"
-        // Esto permite que el usuario pueda modificar el comprobante para corregir lo indicado
-        if (($user->isAdmin() || $user->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'aprobado', 'rechazado'])) {
-            $comprobante->estado = 'en_observacion';
-            $comprobante->save();
-            
-            // Si el anticipo estaba "aprobado", cambiarlo a "pendiente" porque ahora hay un comprobante en observación
-            if ($comprobante->anticipo_id) {
-                $anticipo = $comprobante->anticipo;
-                if ($anticipo->estado === 'aprobado') {
-                    $anticipo->estado = 'pendiente';
-                    $anticipo->save();
-                }
+        // Si un administrador deja una observación, marcar el anticipo como "en_observacion"
+        // Esto permite que el usuario pueda modificar los comprobantes para corregir lo indicado
+        if (($user->isAdmin() || $user->isAreaAdmin()) && $comprobante->anticipo_id) {
+            $anticipo = $comprobante->anticipo;
+            // Solo cambiar a "en_observacion" si no está ya aprobado o rechazado
+            if (!in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                $anticipo->estado = 'en_observacion';
+                $anticipo->save();
             }
         }
 
