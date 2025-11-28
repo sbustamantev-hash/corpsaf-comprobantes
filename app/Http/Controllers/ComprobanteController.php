@@ -113,15 +113,20 @@ class ComprobanteController extends Controller
             ->orderBy('codigo')
             ->get();
 
-        return view('comprobantes.create', compact('anticipo', 'tiposComprobante'));
+        $conceptos = \App\Models\Concepto::where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
+        return view('comprobantes.create', compact('anticipo', 'tiposComprobante', 'conceptos'));
     }
 
     // GUARDAR EN BD
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'ruc_empresa' => 'required|string|max:20',
             'tipo' => 'required|exists:tipos_comprobante,codigo',
+            'concepto' => 'required|exists:conceptos,id',
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
@@ -129,7 +134,15 @@ class ComprobanteController extends Controller
             'detalle' => 'required|string',
             'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:40960',
             'anticipo_id' => 'nullable|exists:anticipos,id'
-        ]);
+        ];
+
+        // Si el concepto es "otros", el campo concepto_otro es obligatorio
+        $concepto = \App\Models\Concepto::find($request->concepto);
+        if ($concepto && strtoupper($concepto->nombre) === 'OTROS') {
+            $rules['concepto_otro'] = 'required|string|max:255';
+        }
+
+        $validated = $request->validate($rules);
 
         $archivoPath = null;
 
@@ -157,6 +170,8 @@ class ComprobanteController extends Controller
             'user_id' => $user->id,
             'anticipo_id' => $anticipo?->id,
             'tipo' => $validated['tipo'],
+            'concepto_id' => $validated['concepto'],
+            'concepto_otro' => $validated['concepto_otro'] ?? null,
             'serie' => $serie,
             'numero' => $numero,
             'monto' => $validated['monto'],
@@ -178,7 +193,7 @@ class ComprobanteController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $comprobante = Comprobante::with(['user.area', 'observaciones.user'])->findOrFail($id);
+        $comprobante = Comprobante::with(['user.area', 'observaciones.user', 'concepto'])->findOrFail($id);
 
         // Super admin: puede ver todo
         if ($user->isAdmin()) {
@@ -206,7 +221,7 @@ class ComprobanteController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $comprobante = Comprobante::with('user')->findOrFail($id);
+        $comprobante = Comprobante::with(['user', 'concepto'])->findOrFail($id);
 
         // Solo operadores pueden editar
         if (!$user->isOperador()) {
@@ -223,21 +238,34 @@ class ComprobanteController extends Controller
             abort(403, 'No puedes modificar un comprobante aprobado o rechazado.');
         }
 
-        return view('comprobantes.edit', compact('comprobante'));
+        $conceptos = \App\Models\Concepto::where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
+        return view('comprobantes.edit', compact('comprobante', 'conceptos'));
     }
 
     // ACTUALIZAR BD
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $rules = [
             'tipo' => 'required|string|max:50',
+            'concepto' => 'required|exists:conceptos,id',
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
             'fecha' => 'required|date',
             'detalle' => 'required|string',
             'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'
-        ]);
+        ];
+
+        // Si el concepto es "otros", el campo concepto_otro es obligatorio
+        $concepto = \App\Models\Concepto::find($request->concepto);
+        if ($concepto && strtoupper($concepto->nombre) === 'OTROS') {
+            $rules['concepto_otro'] = 'required|string|max:255';
+        }
+
+        $request->validate($rules);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -262,7 +290,12 @@ class ComprobanteController extends Controller
             $comprobante->archivo = $archivoPath;
         }
 
+        // Obtener el concepto para verificar si es "OTROS"
+        $conceptoModel = \App\Models\Concepto::findOrFail($request->concepto);
+        
         $comprobante->tipo = $request->tipo;
+        $comprobante->concepto_id = $request->concepto;
+        $comprobante->concepto_otro = strtoupper($conceptoModel->nombre) === 'OTROS' ? $request->concepto_otro : null;
         $comprobante->serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
         $comprobante->numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
         $comprobante->monto = $request->monto;

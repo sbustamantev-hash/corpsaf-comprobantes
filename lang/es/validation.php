@@ -170,6 +170,8 @@ return [
         'logo' => 'Logo',
         'nombre_app' => 'Nombre de la aplicación',
         'nombre_empresa' => 'Nombre de la empresa',
+        'concepto' => 'Concepto',
+        'concepto_otro' => 'Especificar concepto',
     ],
 ];
 

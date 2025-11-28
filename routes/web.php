@@ -11,6 +11,7 @@ use App\Http\Controllers\TipoComprobanteController;
 use App\Http\Controllers\BancoController;
 use App\Http\Controllers\SistemaController;
 use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\ConceptoController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -66,6 +67,9 @@ Route::middleware('auth')->group(function () {
     
     // RUTAS CRUD DE BANCOS - Solo super admin
     Route::resource('bancos', BancoController::class);
+    
+    // RUTAS CRUD DE CONCEPTOS - Super admin y Area Admin
+    Route::resource('conceptos', ConceptoController::class);
     
     // RUTAS DE CONFIGURACIONES - Solo super admin
     Route::get('configuraciones', [ConfiguracionController::class, 'index'])->name('configuraciones.index');

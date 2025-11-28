@@ -86,6 +86,11 @@
                         <i class="fas fa-university w-5"></i>
                         <span class="font-medium">Bancos</span>
                     </a>
+                    <a href="{{ route('conceptos.index') }}" 
+                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('conceptos.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="fas fa-tags w-5"></i>
+                        <span class="font-medium">Conceptos</span>
+                    </a>
                     @endif
                     <a href="{{ route('users.index') }}" 
                        class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">

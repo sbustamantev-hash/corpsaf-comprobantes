@@ -35,6 +35,39 @@
                     @enderror
                 </div>
 
+                {{-- Concepto --}}
+                @php
+                    $conceptoActualId = old('concepto', $comprobante->concepto_id);
+                    $esOtros = $comprobante->concepto && strtoupper($comprobante->concepto->nombre) === 'OTROS';
+                @endphp
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Concepto <span class="text-red-500">*</span></label>
+                    <select name="concepto" id="concepto-select" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('concepto') border-red-500 @enderror">
+                        <option value="">Selecciona un concepto</option>
+                        @foreach($conceptos as $concepto)
+                            <option value="{{ $concepto->id }}" {{ $conceptoActualId == $concepto->id ? 'selected' : '' }}>
+                                {{ $concepto->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('concepto')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div id="concepto-otro-field" class="{{ $esOtros ? '' : 'hidden' }}">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Especificar concepto <span class="text-red-500">*</span></label>
+                    <input type="text" name="concepto_otro" id="concepto-otro-input"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('concepto_otro') border-red-500 @enderror"
+                        value="{{ old('concepto_otro', $comprobante->concepto_otro) }}"
+                        placeholder="Ingresa el concepto"
+                        {{ $esOtros ? 'required' : '' }}>
+                    @error('concepto_otro')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 {{-- Serie y Número --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -255,6 +288,29 @@
         numeroInput.addEventListener('blur', () => {
             numeroInput.value = padNumero(numeroInput.value);
         });
+    }
+
+    // Manejar campo "Concepto Otros"
+    const conceptoSelect = document.getElementById('concepto-select');
+    const conceptoOtroField = document.getElementById('concepto-otro-field');
+    const conceptoOtroInput = document.getElementById('concepto-otro-input');
+
+    if (conceptoSelect) {
+        function checkConceptoOtros() {
+            const selectedOption = conceptoSelect.options[conceptoSelect.selectedIndex];
+            const conceptoNombre = selectedOption ? selectedOption.text.trim().toUpperCase() : '';
+            
+            if (conceptoNombre === 'OTROS') {
+                conceptoOtroField.classList.remove('hidden');
+                conceptoOtroInput.required = true;
+            } else {
+                conceptoOtroField.classList.add('hidden');
+                conceptoOtroInput.required = false;
+                conceptoOtroInput.value = '';
+            }
+        }
+
+        conceptoSelect.addEventListener('change', checkConceptoOtros);
     }
 </script>
 @endsection

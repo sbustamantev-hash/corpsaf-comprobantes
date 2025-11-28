@@ -15,6 +15,8 @@ class Comprobante extends Model
         'user_id',
         'anticipo_id',
         'tipo',
+        'concepto_id',
+        'concepto_otro',
         'serie',
         'numero',
         'monto',
@@ -43,5 +45,11 @@ class Comprobante extends Model
     public function anticipo()
     {
         return $this->belongsTo(Anticipo::class);
+    }
+
+    // Relación con concepto
+    public function concepto()
+    {
+        return $this->belongsTo(Concepto::class);
     }
 }
