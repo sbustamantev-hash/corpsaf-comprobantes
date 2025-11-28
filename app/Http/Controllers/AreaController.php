@@ -106,7 +106,7 @@ class AreaController extends Controller
         User::create([
             'name' => $request->name,
             'dni' => $request->dni,
-            'email' => $request->email,
+            'email' => $request->email ?: null,
             'telefono' => $request->telefono,
             'password' => Hash::make($request->password),
             'role' => $request->role,
@@ -210,7 +210,7 @@ class AreaController extends Controller
         $userData = [
             'name' => $request->name,
             'dni' => $request->dni,
-            'email' => $request->email,
+            'email' => $request->email ?: null,
             'telefono' => $request->telefono,
             'role' => $request->role,
         ];

@@ -72,7 +72,7 @@ class UserController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'dni' => 'required|string|max:20|unique:users,dni',
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'email' => 'nullable|string|email|max:255|unique:users,email',
             'telefono' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
             'role' => [
@@ -103,7 +103,7 @@ class UserController extends Controller
         User::create([
             'name' => $validated['name'],
             'dni' => $validated['dni'],
-            'email' => $validated['email'],
+            'email' => $validated['email'] ?: null,
             'telefono' => $validated['telefono'] ?? null,
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
@@ -166,7 +166,7 @@ class UserController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'dni' => 'required|string|max:20|unique:users,dni,' . $user->id,
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'telefono' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:8',
             'role' => [
@@ -197,7 +197,7 @@ class UserController extends Controller
         $userData = [
             'name' => $validated['name'],
             'dni' => $validated['dni'],
-            'email' => $validated['email'],
+            'email' => $validated['email'] ?: null,
             'telefono' => $validated['telefono'] ?? null,
             'role' => $validated['role'],
             'area_id' => $validated['area_id'] ?? null,
