@@ -37,7 +37,7 @@
                 </div>
                 @if($area->descripcion)
                     <div class="col-span-2">
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Descripción</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Encargado</label>
                         <p class="text-gray-900">{{ $area->descripcion }}</p>
                     </div>
                 @endif
