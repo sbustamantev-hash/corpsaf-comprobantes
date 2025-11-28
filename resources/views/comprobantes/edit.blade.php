@@ -24,7 +24,7 @@
 
                 {{-- Tipo --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante <span class="text-red-500">*</span></label>
                     <input type="text" 
                            name="tipo" 
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipo') border-red-500 @enderror"
@@ -38,10 +38,11 @@
                 {{-- Serie y Número --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de serie</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de serie <span class="text-red-500">*</span></label>
                         <input type="text"
                                name="serie"
                                maxlength="4"
+                               required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('serie') border-red-500 @enderror"
                                value="{{ old('serie', $comprobante->serie) }}"
                                placeholder="Ej: 0846">
@@ -50,10 +51,11 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de comprobante</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de comprobante <span class="text-red-500">*</span></label>
                         <input type="text"
                                name="numero"
                                maxlength="10"
+                               required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('numero') border-red-500 @enderror"
                                value="{{ old('numero', $comprobante->numero) }}"
                                placeholder="Ej: 0000000456">
@@ -67,25 +69,25 @@
                 {{-- Fecha y Monto --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha del comprobante</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha del comprobante <span class="text-red-500">*</span></label>
                         <input type="date" 
                                name="fecha" 
+                               required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fecha') border-red-500 @enderror"
-                               value="{{ old('fecha', $comprobante->fecha) }}"
-                               required>
+                               value="{{ old('fecha', $comprobante->fecha) }}">
                         @error('fecha')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Monto (S/.)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Monto (S/.) <span class="text-red-500">*</span></label>
                         <input type="number" 
                                name="monto" 
                                step="0.01"
+                               required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('monto') border-red-500 @enderror"
-                               value="{{ old('monto', $comprobante->monto) }}"
-                               required>
+                               value="{{ old('monto', $comprobante->monto) }}">
                         @error('monto')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -94,9 +96,10 @@
 
                 {{-- Detalle --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Detalle (opcional)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Detalle <span class="text-red-500">*</span></label>
                     <textarea name="detalle" 
                               rows="3"
+                              required
                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('detalle') border-red-500 @enderror">{{ old('detalle', $comprobante->detalle) }}</textarea>
                     @error('detalle')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

@@ -120,14 +120,14 @@ class ComprobanteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'ruc_empresa' => 'required|string|max:20',
             'tipo' => 'required|exists:tipos_comprobante,codigo',
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
             'fecha' => 'required|date',
-            'detalle' => 'nullable|string',
-            // Máximo 100 MB (100 * 1024 KB)
-            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960',
+            'detalle' => 'required|string',
+            'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:40960',
             'anticipo_id' => 'nullable|exists:anticipos,id'
         ]);
 
@@ -235,7 +235,7 @@ class ComprobanteController extends Controller
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
             'fecha' => 'required|date',
-            'detalle' => 'nullable|string',
+            'detalle' => 'required|string',
             'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'
         ]);
 

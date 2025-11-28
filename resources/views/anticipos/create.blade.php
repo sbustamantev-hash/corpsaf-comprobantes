@@ -39,14 +39,14 @@
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo <span class="text-red-500">*</span></label>
                         <div class="flex items-center space-x-4">
                             <label class="inline-flex items-center text-sm text-gray-700">
-                                <input type="radio" name="tipo" value="anticipo" class="text-blue-600" {{ old('tipo', 'anticipo') === 'anticipo' ? 'checked' : '' }}>
+                                <input type="radio" name="tipo" value="anticipo" required class="text-blue-600" {{ old('tipo', 'anticipo') === 'anticipo' ? 'checked' : '' }}>
                                 <span class="ml-2">Anticipo</span>
                             </label>
                             <label class="inline-flex items-center text-sm text-gray-700">
-                                <input type="radio" name="tipo" value="reembolso" class="text-blue-600" {{ old('tipo') === 'reembolso' ? 'checked' : '' }}>
+                                <input type="radio" name="tipo" value="reembolso" required class="text-blue-600" {{ old('tipo') === 'reembolso' ? 'checked' : '' }}>
                                 <span class="ml-2">Reembolso</span>
                             </label>
                         </div>
@@ -56,7 +56,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha <span class="text-red-500">*</span></label>
                         <input type="date" name="fecha" value="{{ old('fecha') }}" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fecha') border-red-500 @enderror">
                         @error('fecha')
@@ -65,9 +65,9 @@
                     </div>
 
                     <div id="field-tipo-rendicion">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de rendición</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de rendición <span class="text-red-500">*</span></label>
 
-                        <select name="tipo_rendicion_id"
+                        <select name="tipo_rendicion_id" id="select-tipo-rendicion" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Seleccione un tipo de rendición</option>
                             @foreach ($tipos_rendicion as $tiporendicion)
@@ -79,8 +79,8 @@
                         @enderror
                     </div>
                     <div id="field-banco">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Entidad financiera</label>
-                        <select name="banco_id"
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Entidad financiera <span class="text-red-500">*</span></label>
+                        <select name="banco_id" id="select-banco" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('banco_id') border-red-500 @enderror">
                             <option value="">Seleccione banco</option>
                             @foreach($bancos as $banco)
@@ -97,7 +97,7 @@
 
 
                     <div id="field-importe">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Importe (S/.) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Importe (S/.) <span class="text-red-500">*</span></label>
                         <input type="number" step="0.01" name="importe" id="input-importe" value="{{ old('importe') }}" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('importe') border-red-500 @enderror">
                         @error('importe')
@@ -107,8 +107,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Descripción (Opcional)</label>
-                    <textarea name="descripcion" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descripción <span class="text-red-500">*</span></label>
+                    <textarea name="descripcion" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-lg
                                                     focus:outline-none focus:ring-2 focus:ring-blue-500 @error('descripcion') border-red-500
                                                     @enderror">{{ old('descripcion') }}</textarea>
                     @error('descripcion')
@@ -140,10 +140,21 @@
 
             function toggleFields() {
                 const tipo = document.querySelector('input[name="tipo"]:checked').value;
+                const selectBanco = document.getElementById('select-banco');
+                const selectTipoRendicion = document.getElementById('select-tipo-rendicion');
+                
                 if (tipo === 'reembolso') {
                     // Para reembolso: ocultar banco y tipo rendición, bloquear importe
                     fieldBanco.style.display = 'none';
                     fieldTipoRendicion.style.display = 'none';
+                    if (selectBanco) {
+                        selectBanco.required = false;
+                        selectBanco.value = '';
+                    }
+                    if (selectTipoRendicion) {
+                        selectTipoRendicion.required = false;
+                        selectTipoRendicion.value = '';
+                    }
                     inputImporte.readOnly = true;
                     inputImporte.required = false;
                     inputImporte.value = '';
@@ -154,6 +165,8 @@
                     // Para anticipo: mostrar todos los campos, habilitar importe
                     fieldBanco.style.display = 'block';
                     fieldTipoRendicion.style.display = 'block';
+                    if (selectBanco) selectBanco.required = true;
+                    if (selectTipoRendicion) selectTipoRendicion.required = true;
                     inputImporte.readOnly = false;
                     inputImporte.required = true;
                     inputImporte.classList.remove('bg-gray-100', 'cursor-not-allowed');

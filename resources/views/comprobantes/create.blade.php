@@ -24,8 +24,8 @@
 
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC de la Empresa</label>
-                        <input type="text" name="ruc_empresa"
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC de la Empresa <span class="text-red-500">*</span></label>
+                        <input type="text" name="ruc_empresa" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('ruc_empresa') border-red-500 @enderror"
                             value="{{ old('ruc_empresa') }}" placeholder="Ingresa el RUC de tu empresa">
                         <p class="mt-1 text-xs text-gray-500">Corresponde a la empresa que te brinda el servicio</p>
@@ -36,8 +36,8 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Serie de Comprobante</label>
-                            <input type="text" name="serie" maxlength="4"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Serie de Comprobante <span class="text-red-500">*</span></label>
+                            <input type="text" name="serie" maxlength="4" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('serie') border-red-500 @enderror"
                                 value="{{ old('serie') }}" placeholder="Ej: 0846">
                             @error('serie')
@@ -46,8 +46,8 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Número de comprobante</label>
-                            <input type="text" name="numero" maxlength="10"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Número de comprobante <span class="text-red-500">*</span></label>
+                            <input type="text" name="numero" maxlength="10" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('numero') border-red-500 @enderror"
                                 value="{{ old('numero') }}" placeholder="Ej: 0000000456">
                             <p class="mt-1 text-xs text-gray-500">10 dígitos. Se completará con ceros a la izquierda.</p>
@@ -58,10 +58,9 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante</label>
-                        <select name="tipo"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipo') border-red-500 @enderror"
-                            required>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante <span class="text-red-500">*</span></label>
+                        <select name="tipo" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipo') border-red-500 @enderror">
                             <option value="">Selecciona un tipo</option>
                             @foreach($tiposComprobante as $tipo)
                                 <option value="{{ $tipo->codigo }}" {{ old('tipo') == $tipo->codigo ? 'selected' : '' }}>
@@ -76,20 +75,20 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Monto (S/.)</label>
-                            <input type="number" step="0.01" name="monto"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Monto (S/.) <span class="text-red-500">*</span></label>
+                            <input type="number" step="0.01" name="monto" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('monto') border-red-500 @enderror"
-                                value="{{ old('monto') }}" required placeholder="0.00">
+                                value="{{ old('monto') }}" placeholder="0.00">
                             @error('monto')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
-                            <input type="date" name="fecha"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha <span class="text-red-500">*</span></label>
+                            <input type="date" name="fecha" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fecha') border-red-500 @enderror"
-                                value="{{ old('fecha') }}" required>
+                                value="{{ old('fecha') }}">
                             @error('fecha')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -97,8 +96,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Detalle (opcional)</label>
-                        <textarea name="detalle" rows="4"
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Detalle <span class="text-red-500">*</span></label>
+                        <textarea name="detalle" rows="4" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('detalle') border-red-500 @enderror"
                             placeholder="Descripción adicional del comprobante...">{{ old('detalle') }}</textarea>
                         @error('detalle')
@@ -107,7 +106,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Archivo (imagen o PDF)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Archivo (imagen o PDF) <span class="text-red-500">*</span></label>
                         <div id="drop-zone"
                             class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition cursor-pointer">
                             <div class="space-y-1 text-center">
@@ -116,7 +115,7 @@
                                     <label for="archivo"
                                         class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
                                         <span>Subir archivo</span>
-                                        <input id="archivo" name="archivo" type="file" class="sr-only"
+                                        <input id="archivo" name="archivo" type="file" required class="sr-only"
                                             accept="image/*,application/pdf" onchange="handleFileSelect(this)">
                                     </label>
                                     <p class="pl-1">o arrastra y suelta</p>

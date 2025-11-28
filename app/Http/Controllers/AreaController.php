@@ -48,8 +48,8 @@ class AreaController extends Controller
     {
         $request->validate([
             'nombre' => 'required|string|max:255|unique:areas,nombre',
-            'codigo' => 'nullable|string|max:50|unique:areas,codigo',
-            'descripcion' => 'nullable|string',
+            'codigo' => 'required|string|max:50|unique:areas,codigo',
+            'descripcion' => 'required|string|max:255',
             'activo' => 'boolean',
         ]);
 
@@ -135,8 +135,8 @@ class AreaController extends Controller
 
         $request->validate([
             'nombre' => 'required|string|max:255|unique:areas,nombre,' . $area->id,
-            'codigo' => 'nullable|string|max:50|unique:areas,codigo,' . $area->id,
-            'descripcion' => 'nullable|string',
+            'codigo' => 'required|string|max:50|unique:areas,codigo,' . $area->id,
+            'descripcion' => 'required|string|max:255',
             'activo' => 'boolean',
         ]);
 

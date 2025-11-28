@@ -24,9 +24,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC <span class="text-red-500">*</span></label>
                         <input type="text" 
                                name="codigo" 
+                               required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('codigo') border-red-500 @enderror" 
                                value="{{ old('codigo') }}" 
                                placeholder="Ej: 20123456789">
@@ -37,9 +38,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Responsable</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Responsable <span class="text-red-500">*</span></label>
                         <input type="text" 
                                name="descripcion" 
+                               required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('descripcion') border-red-500 @enderror"
                                value="{{ old('descripcion') }}"
                                placeholder="Nombre del responsable">

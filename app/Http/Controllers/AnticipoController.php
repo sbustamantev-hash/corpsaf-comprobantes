@@ -57,15 +57,22 @@ class AnticipoController extends Controller
                 ->with('error', 'El usuario no pertenece a esta Empresa.');
         }
 
-        $request->validate([
+        $rules = [
             'tipo' => 'required|in:anticipo,reembolso',
             'fecha' => 'required|date',
-            'banco_id' => 'nullable|exists:bancos,id',
-            'TipoRendicion' => 'nullable|string|max:20',
-            'importe' => 'required_if:tipo,anticipo|nullable|numeric|min:0',
-            'descripcion' => 'nullable|string',
-            'tipo_rendicion_id' => 'nullable|exists:tipos_rendicion,id',
-        ]);
+            'descripcion' => 'required|string',
+        ];
+
+        if ($request->tipo === 'anticipo') {
+            $rules['banco_id'] = 'required|exists:bancos,id';
+            $rules['tipo_rendicion_id'] = 'required|exists:tipos_rendicion,id';
+            $rules['importe'] = 'required|numeric|min:0';
+        } else {
+            // Para reembolso, importe no es requerido (se calcula después)
+            $rules['importe'] = 'nullable|numeric|min:0';
+        }
+
+        $request->validate($rules);
 
         Anticipo::create([
             'area_id' => $area->id,
