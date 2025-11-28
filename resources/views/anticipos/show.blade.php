@@ -282,6 +282,7 @@
                                       rows="4"
                                       required
                                       minlength="2"
+                                      title="El mensaje debe tener al menos 2 caracteres"
                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 @error('mensaje') border-red-500 @enderror"
                                       placeholder="Escribe un mensaje de aprobación...">{{ old('mensaje') }}</textarea>
                             @error('mensaje')
@@ -317,6 +318,7 @@
                                       rows="4"
                                       required
                                       minlength="2"
+                                      title="El mensaje debe tener al menos 2 caracteres"
                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 @error('mensaje') border-red-500 @enderror"
                                       placeholder="Explica el motivo del rechazo...">{{ old('mensaje') }}</textarea>
                             @error('mensaje')
