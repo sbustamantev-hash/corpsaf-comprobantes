@@ -52,4 +52,10 @@ class Comprobante extends Model
     {
         return $this->belongsTo(Concepto::class);
     }
+
+    // Obtener el tipo de comprobante basado en el código
+    public function tipoComprobante()
+    {
+        return \App\Models\TipoComprobante::where('codigo', $this->tipo)->first();
+    }
 }

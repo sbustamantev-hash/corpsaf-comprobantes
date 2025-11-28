@@ -65,16 +65,42 @@
                         <p class="text-base font-medium text-gray-900">{{ $comprobante->created_at->format('d M, Y') }}</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Tipo</p>
-                        <p class="text-base font-medium text-gray-900">{{ $comprobante->tipo }}</p>
+                        <p class="text-sm text-gray-500 mb-1">Tipo de comprobante</p>
+                        @php
+                            $tipoComprobante = $comprobante->tipoComprobante();
+                        @endphp
+                        <p class="text-base font-medium text-gray-900">
+                            [{{ $comprobante->tipo }}] {{ $tipoComprobante ? $tipoComprobante->descripcion : 'N/A' }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">RUC de la Empresa</p>
+                        <p class="text-base font-medium text-gray-900">{{ $comprobante->ruc_empresa ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Concepto</p>
+                        <p class="text-base font-medium text-gray-900">
+                            {{ $comprobante->concepto ? $comprobante->concepto->nombre : 'N/A' }}
+                            @if($comprobante->concepto_otro)
+                                - {{ $comprobante->concepto_otro }}
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Serie</p>
+                        <p class="text-base font-medium text-gray-900">{{ $comprobante->serie ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Número</p>
+                        <p class="text-base font-medium text-gray-900">{{ $comprobante->numero ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Fecha del comprobante</p>
+                        <p class="text-base font-medium text-gray-900">{{ $comprobante->fecha ? $comprobante->fecha->format('d/m/Y') : 'N/A' }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Monto</p>
                         <p class="text-lg font-bold text-gray-900">S/ {{ number_format($comprobante->monto, 2) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Fecha del comprobante</p>
-                        <p class="text-base font-medium text-gray-900">{{ $comprobante->fecha }}</p>
                     </div>
                 </div>
             </div>
