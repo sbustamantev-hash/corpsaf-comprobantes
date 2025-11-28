@@ -364,7 +364,7 @@ class AnticipoController extends Controller
         $data[] = ['IMPORTE ASIGNADO:', number_format($anticipo->importe, 2)];
         $data[] = [];
 
-        // Encabezados de detalle
+        // Encabezados de detalle principal
         $data[] = ['FECHA', 'TIPO DOCUMENTO', 'N° DOCUMENTO', 'DESCRIPCIÓN', 'HABER', 'SALDO'];
 
         // Detalle de comprobantes
@@ -389,9 +389,40 @@ class AnticipoController extends Controller
         $totalGastos = $anticipo->comprobantes->sum('monto');
         $data[] = ['TOTALES', '', '', '', number_format($totalGastos, 2), number_format($saldo, 2)];
         $data[] = [];
+        
+        // Resumen financiero
         $data[] = ['IMPORTE RECIBIDO:', number_format($anticipo->importe, 2)];
         $data[] = ['TOTAL GASTOS:', number_format($totalGastos, 2)];
-        $data[] = ['IMPORTE A DEPOSITAR/REEMBOLSAR:', number_format($totalGastos - $anticipo->importe, 2)];
+        
+        // Calcular diferencia
+        $diferencia = $totalGastos - $anticipo->importe;
+        if ($diferencia < 0) {
+            $data[] = ['REEMBOLSAR:', number_format(abs($diferencia), 2)];
+        } elseif ($diferencia > 0) {
+            $data[] = ['DEVOLUCIÓN:', number_format($diferencia, 2)];
+        } else {
+            $data[] = ['SALDO:', '0.00'];
+        }
+        
+        $data[] = [];
+        $data[] = [];
+        
+        // Cuadro detallado de comprobantes
+        $data[] = ['DETALLE DE COMPROBANTES'];
+        $data[] = ['FECHA', 'NÚMERO DE RUC', 'NÚMERO DE SERIE', 'NÚMERO DE COMPROBANTE', 'MONTO'];
+        
+        foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
+            $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
+                ? $comprobante->fecha
+                : Carbon::parse($comprobante->fecha);
+            $data[] = [
+                $fechaComprobante->format('d/m/Y'),
+                $anticipo->area->codigo ?? '-',
+                $comprobante->serie ?? '-',
+                $comprobante->numero ?? '-',
+                number_format($comprobante->monto, 2)
+            ];
+        }
 
         return $data;
     }
@@ -483,7 +514,33 @@ class AnticipoController extends Controller
         }
         $html .= '<tr class="total-row"><td class="text-center"><strong>' . $anticipo->comprobantes->count() . '</strong></td><td><strong>TOTAL GASTOS</strong></td><td class="text-right"><strong>' . number_format($totalGastos, 2) . '</strong></td></tr></tbody></table>';
 
-        $html .= '<div class="info-row" style="margin-top: 20px;"><span class="info-label"><strong>(B) IMPORTE A DEPOSITAR/REEMBOLSAR A:</strong></span><span class="info-value">' . number_format($totalGastos - $anticipo->importe, 2) . '</span></div>';
+        // Calcular diferencia y mostrar Reembolsar o Devolución
+        $diferencia = $totalGastos - $anticipo->importe;
+        $diferenciaLabel = '';
+        if ($diferencia < 0) {
+            $diferenciaLabel = '<strong>(B) REEMBOLSAR:</strong>';
+        } elseif ($diferencia > 0) {
+            $diferenciaLabel = '<strong>(B) DEVOLUCIÓN:</strong>';
+        } else {
+            $diferenciaLabel = '<strong>(B) SALDO:</strong>';
+        }
+        $html .= '<div class="info-row" style="margin-top: 20px;"><span class="info-label">' . $diferenciaLabel . '</span><span class="info-value">' . number_format(abs($diferencia), 2) . '</span></div>';
+        
+        // Cuadro detallado de comprobantes
+        $html .= '<table style="margin-top: 20px;"><thead><tr><th>FECHA</th><th>NÚMERO DE RUC</th><th>NÚMERO DE SERIE</th><th>NÚMERO DE COMPROBANTE</th><th class="text-right">MONTO</th></tr></thead><tbody>';
+        foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
+            $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
+                ? $comprobante->fecha
+                : Carbon::parse($comprobante->fecha);
+            $html .= '<tr>
+                <td>' . $fechaComprobante->format('d/m/Y') . '</td>
+                <td>' . ($anticipo->area->codigo ?? '-') . '</td>
+                <td>' . ($comprobante->serie ?? '-') . '</td>
+                <td>' . ($comprobante->numero ?? '-') . '</td>
+                <td class="text-right">' . number_format($comprobante->monto, 2) . '</td>
+            </tr>';
+        }
+        $html .= '</tbody></table>';
 
 
         $html .= '<div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #000;">
