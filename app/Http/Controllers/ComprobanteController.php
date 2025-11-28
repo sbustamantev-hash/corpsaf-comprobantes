@@ -510,7 +510,8 @@ class ComprobanteController extends Controller
         ]);
 
         // Si un administrador deja una observación, marcar el comprobante como "en_observacion"
-        if (($user->isAdmin() || $user->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'rechazado'])) {
+        // Esto permite que el usuario pueda modificar el comprobante para corregir lo indicado
+        if (($user->isAdmin() || $user->isAreaAdmin()) && in_array($comprobante->estado, ['pendiente', 'aprobado', 'rechazado'])) {
             $comprobante->estado = 'en_observacion';
             $comprobante->save();
         }
