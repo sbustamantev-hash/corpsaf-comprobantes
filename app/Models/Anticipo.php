@@ -21,6 +21,7 @@ class Anticipo extends Model
         'descripcion',
         'estado',
         'tipo_rendicion_id',
+        'aprobado_por',
     ];
 
     protected $casts = [
@@ -41,6 +42,11 @@ class Anticipo extends Model
     public function creador()
     {
         return $this->belongsTo(User::class, 'creado_por');
+    }
+
+    public function aprobador()
+    {
+        return $this->belongsTo(User::class, 'aprobado_por');
     }
 
     public function banco()

@@ -189,8 +189,9 @@ class AnticipoController extends Controller
             abort(403, 'Solo puedes aprobar anticipos de tu Empresa.');
         }
 
-        // Cambiar estado
+        // Cambiar estado y guardar quien aprobó
         $anticipo->estado = 'aprobado';
+        $anticipo->aprobado_por = $user->id;
         $anticipo->save();
 
         return redirect()->route('anticipos.show', $anticipo->id)
@@ -220,8 +221,9 @@ class AnticipoController extends Controller
             abort(403, 'Solo puedes rechazar anticipos de tu Empresa.');
         }
 
-        // Cambiar estado
+        // Cambiar estado y guardar quien rechazó
         $anticipo->estado = 'rechazado';
+        $anticipo->aprobado_por = $user->id;
         $anticipo->save();
 
         return redirect()->route('anticipos.show', $anticipo->id)
@@ -239,7 +241,8 @@ class AnticipoController extends Controller
             'area',
             'banco',
             'creador',
-            'comprobantes' => function($query) {
+            'aprobador',
+            'comprobantes' => function ($query) {
                 $query->orderBy('fecha', 'asc');
             }
         ])->findOrFail($id);
@@ -260,16 +263,16 @@ class AnticipoController extends Controller
         }
 
         $dompdf = new Dompdf();
-        
+
         // Generar HTML directamente sin usar Blade
         $html = $this->generatePdfHtml($anticipo);
-        
+
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
         $filename = 'liquidacion_' . strtoupper($anticipo->tipo) . '_' . $anticipo->id . '_' . date('Ymd') . '.pdf';
-        
+
         return $dompdf->stream($filename);
     }
 
@@ -284,7 +287,7 @@ class AnticipoController extends Controller
             'area',
             'banco',
             'creador',
-            'comprobantes' => function($query) {
+            'comprobantes' => function ($query) {
                 $query->orderBy('fecha', 'asc');
             }
         ])->findOrFail($id);
@@ -306,42 +309,42 @@ class AnticipoController extends Controller
 
         // Generar CSV simple en lugar de Excel por ahora
         $filename = 'liquidacion_' . strtoupper($anticipo->tipo) . '_' . $anticipo->id . '_' . date('Ymd') . '.csv';
-        
+
         $data = $this->generateExcelData($anticipo);
-        
+
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-        
-        $callback = function() use ($data) {
+
+        $callback = function () use ($data) {
             $file = fopen('php://output', 'w');
             // BOM para Excel
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
             foreach ($data as $row) {
                 fputcsv($file, $row, ';');
             }
             fclose($file);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
-    
+
     /**
      * Generar datos para Excel/CSV
      */
     private function generateExcelData($anticipo)
     {
         $data = [];
-        
+
         // Información del anticipo
         $data[] = ['LIQUIDACION DE GASTOS POR:', strtoupper($anticipo->tipo == 'anticipo' ? 'ANTICIPO' : 'REEMBOLSO')];
         $data[] = [];
         $data[] = ['EMPRESA:', $anticipo->area->nombre ?? 'N/A'];
         $data[] = ['NOMBRE SOLICITANTE:', $anticipo->usuario->name ?? 'N/A'];
         $data[] = ['CARGO:', $anticipo->usuario->role ?? 'N/A'];
-        $fechaAnticipo = $anticipo->fecha instanceof \Carbon\Carbon 
-            ? $anticipo->fecha 
+        $fechaAnticipo = $anticipo->fecha instanceof \Carbon\Carbon
+            ? $anticipo->fecha
             : Carbon::parse($anticipo->fecha);
         $data[] = ['FECHA DE SOLICITUD:', $fechaAnticipo->format('d/m/Y')];
         $maxFecha = $anticipo->comprobantes->max('fecha');
@@ -356,14 +359,14 @@ class AnticipoController extends Controller
 
         // Encabezados de detalle
         $data[] = ['FECHA', 'TIPO DOCUMENTO', 'N° DOCUMENTO', 'DESCRIPCIÓN', 'HABER', 'SALDO'];
-        
+
         // Detalle de comprobantes
         $saldo = 0;
         foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
             $tipoComprobante = \App\Models\TipoComprobante::where('codigo', $comprobante->tipo)->first();
             $saldo += $comprobante->monto;
-            $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon 
-                ? $comprobante->fecha 
+            $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
+                ? $comprobante->fecha
                 : Carbon::parse($comprobante->fecha);
             $data[] = [
                 $fechaComprobante->format('d/m/Y'),
@@ -393,10 +396,10 @@ class AnticipoController extends Controller
     {
         $totalGastos = $anticipo->comprobantes->sum('monto');
         $saldo = 0;
-        
+
         // Resumen por conceptos
         $resumenConceptos = [];
-        foreach($anticipo->comprobantes as $comp) {
+        foreach ($anticipo->comprobantes as $comp) {
             $tipoComp = \App\Models\TipoComprobante::where('codigo', $comp->tipo)->first();
             $concepto = $tipoComp->descripcion ?? $comp->tipo;
             if (!isset($resumenConceptos[$concepto])) {
@@ -405,9 +408,9 @@ class AnticipoController extends Controller
             $resumenConceptos[$concepto]['count']++;
             $resumenConceptos[$concepto]['total'] += $comp->monto;
         }
-        
+
         $fechaRendicion = $anticipo->comprobantes->max('fecha') ? \Carbon\Carbon::parse($anticipo->comprobantes->max('fecha'))->format('d/m/Y') : 'N/A';
-        
+
         $html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; font-size: 10px; color: #000; padding: 20px; }
@@ -425,9 +428,9 @@ class AnticipoController extends Controller
         .text-center { text-align: center; }
         .total-row { font-weight: bold; background-color: #f0f0f0; }
         </style></head><body>';
-        
+
         $html .= '<div class="header"><h1>LIQUIDACION DE GASTOS POR:</h1><h2>' . strtoupper($anticipo->tipo == 'anticipo' ? 'ANTICIPO' : 'REEMBOLSO') . '</h2></div>';
-        
+
         $html .= '<div class="info-section">
             <div class="info-row"><span class="info-label">EMPRESA:</span><span class="info-value">' . ($anticipo->area->nombre ?? 'N/A') . '</span></div>
             <div class="info-row"><span class="info-label">NOMBRE SOLICITANTE:</span><span class="info-value">' . ($anticipo->usuario->name ?? 'N/A') . '</span></div>
@@ -438,19 +441,19 @@ class AnticipoController extends Controller
             $html .= '<div class="info-row"><span class="info-label">BANCO:</span><span class="info-value">' . $anticipo->banco->descripcion . '</span></div>';
         }
         $html .= '</div>';
-        
+
         // Tabla de asignación
         $html .= '<table><thead><tr><th>RICHA</th><th>TIPO DOCUMENTO</th><th>N° CUENTA</th><th>BANCO</th><th>CONCEPTO</th><th class="text-right">IMPORTE</th></tr></thead><tbody>
             <tr><td>' . strtoupper($anticipo->tipo) . '</td><td>-</td><td>-</td><td>' . ($anticipo->banco->descripcion ?? '-') . '</td><td>' . ($anticipo->descripcion ?? 'ANTICIPO/REEMBOLSO') . '</td><td class="text-right">' . number_format($anticipo->importe, 2) . '</td></tr>
         </tbody></table>';
-        
+
         // Tabla de detalle
         $html .= '<table><thead><tr><th>FECHA</th><th>TIPO DOCUMENTO</th><th>N° DOCUMENTO</th><th>DENOMINACIÓN / RAZÓN SOCIAL</th><th>DESCRIPCIÓN</th><th class="text-right">HABER</th><th class="text-right">SALDO</th></tr></thead><tbody>';
-        foreach($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
+        foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
             $tipoComprobante = \App\Models\TipoComprobante::where('codigo', $comprobante->tipo)->first();
             $saldo += $comprobante->monto;
-            $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon 
-                ? $comprobante->fecha 
+            $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
+                ? $comprobante->fecha
                 : Carbon::parse($comprobante->fecha);
             $html .= '<tr>
                 <td>' . $fechaComprobante->format('d/m/Y') . '</td>
@@ -463,25 +466,37 @@ class AnticipoController extends Controller
             </tr>';
         }
         $html .= '<tr class="total-row"><td colspan="5" class="text-right"><strong>TOTALES</strong></td><td class="text-right"><strong>' . number_format($totalGastos, 2) . '</strong></td><td class="text-right"><strong>(' . number_format($saldo, 2) . ')</strong></td></tr></tbody></table>';
-        
+
         // Resumen
         $html .= '<div class="info-section"><div class="info-row"><span class="info-label"><strong>(A) IMPORTE RECIBIDO:</strong></span><span class="info-value">' . number_format($anticipo->importe, 2) . '</span></div></div>';
-        
+
         $html .= '<table style="width: 50%;"><thead><tr><th>N° COMPROB.</th><th>CONCEPTOS</th><th class="text-right">IMPORTE</th></tr></thead><tbody>';
-        foreach($resumenConceptos as $concepto => $data) {
+        foreach ($resumenConceptos as $concepto => $data) {
             $html .= '<tr><td class="text-center">' . $data['count'] . '</td><td>' . $concepto . '</td><td class="text-right">' . number_format($data['total'], 2) . '</td></tr>';
         }
         $html .= '<tr class="total-row"><td class="text-center"><strong>' . $anticipo->comprobantes->count() . '</strong></td><td><strong>TOTAL GASTOS</strong></td><td class="text-right"><strong>' . number_format($totalGastos, 2) . '</strong></td></tr></tbody></table>';
-        
+
         $html .= '<div class="info-row" style="margin-top: 20px;"><span class="info-label"><strong>(B) IMPORTE A DEPOSITAR/REEMBOLSAR A:</strong></span><span class="info-value">' . number_format($totalGastos - $anticipo->importe, 2) . '</span></div>';
-        
+
+
         $html .= '<div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #000;">
-            <div class="info-row"><span class="info-label"><strong>ELABORADO POR:</strong></span><span class="info-value">' . ($anticipo->usuario->name ?? 'N/A') . ', ' . ($anticipo->usuario->role ?? 'N/A') . '</span></div>
-            <div class="info-row" style="margin-top: 30px;"><span class="info-label"><strong>APROBADO POR:</strong></span><span class="info-value">_________________________</span></div>
-        </div>';
-        
+            <div class="info-row"><span class="info-label"><strong>ELABORADO POR:</strong></span><span class="info-value">' . ($anticipo->usuario->name ?? 'N/A') . ', ' . ($anticipo->usuario->role ?? 'N/A') . '</span></div>';
+
+        // Dynamic footer based on status
+        if ($anticipo->estado === 'aprobado') {
+            $aprobadorName = $anticipo->aprobador->name ?? '_________________________';
+            $html .= '<div class="info-row" style="margin-top: 30px;"><span class="info-label"><strong>APROBADO POR:</strong></span><span class="info-value">' . $aprobadorName . '</span></div>';
+        } elseif ($anticipo->estado === 'rechazado') {
+            $rechazadorName = $anticipo->aprobador->name ?? '_________________________';
+            $html .= '<div class="info-row" style="margin-top: 30px;"><span class="info-label"><strong>RECHAZADO POR:</strong></span><span class="info-value">' . $rechazadorName . '</span></div>';
+        } else {
+            $html .= '<div class="info-row" style="margin-top: 30px;"><span class="info-label"><strong>ESTADO:</strong></span><span class="info-value">PENDIENTE DE APROBACIÓN</span></div>';
+        }
+
+        $html .= '</div>';
+
         $html .= '</body></html>';
-        
+
         return $html;
     }
 

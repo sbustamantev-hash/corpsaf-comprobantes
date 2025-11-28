@@ -248,6 +248,11 @@ class ComprobanteController extends Controller
             abort(403, 'No tienes permisos para actualizar este comprobante.');
         }
 
+        // No permitir edición si el comprobante ya fue aprobado o rechazado
+        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
+            abort(403, 'No puedes modificar un comprobante aprobado o rechazado.');
+        }
+
         if ($request->hasFile('archivo')) {
             // Borrar archivo anterior si existe
             if ($comprobante->archivo) {
@@ -263,6 +268,11 @@ class ComprobanteController extends Controller
         $comprobante->monto = $request->monto;
         $comprobante->fecha = $request->fecha;
         $comprobante->detalle = $request->detalle;
+
+        // Si estaba en observación, vuelve a pendiente para revisión
+        if ($comprobante->estado === 'en_observacion') {
+            $comprobante->estado = 'pendiente';
+        }
 
         $comprobante->save();
 
@@ -365,9 +375,13 @@ class ComprobanteController extends Controller
         // Verificar si todos los comprobantes del anticipo están aprobados
         if ($comprobante->anticipo_id) {
             $anticipo = $comprobante->anticipo;
-            $pendientes = $anticipo->comprobantes()->where('estado', '!=', 'aprobado')->exists();
 
-            if (!$pendientes) {
+            // Verificar si existen comprobantes que NO estén aprobados
+            // Esto incluye pendientes, en_observacion, rechazados
+            $noAprobados = $anticipo->comprobantes()->where('estado', '!=', 'aprobado')->exists();
+
+            // Si NO hay comprobantes no aprobados (es decir, todos están aprobados)
+            if (!$noAprobados) {
                 $anticipo->estado = 'aprobado';
                 $anticipo->save();
             }
