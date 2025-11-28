@@ -19,6 +19,7 @@ class Comprobante extends Model
         'concepto_otro',
         'serie',
         'numero',
+        'ruc_empresa',
         'monto',
         'fecha',
         'detalle',
