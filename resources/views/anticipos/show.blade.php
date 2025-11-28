@@ -281,7 +281,7 @@
                             <textarea name="mensaje" 
                                       rows="4"
                                       required
-                                      minlength="10"
+                                      minlength="2"
                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 @error('mensaje') border-red-500 @enderror"
                                       placeholder="Escribe un mensaje de aprobación...">{{ old('mensaje') }}</textarea>
                             @error('mensaje')
@@ -316,7 +316,7 @@
                             <textarea name="mensaje" 
                                       rows="4"
                                       required
-                                      minlength="10"
+                                      minlength="2"
                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 @error('mensaje') border-red-500 @enderror"
                                       placeholder="Explica el motivo del rechazo...">{{ old('mensaje') }}</textarea>
                             @error('mensaje')

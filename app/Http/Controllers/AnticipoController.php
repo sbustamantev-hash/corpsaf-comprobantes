@@ -186,7 +186,7 @@ class AnticipoController extends Controller
         }
 
         $request->validate([
-            'mensaje' => 'required|string|min:10',
+            'mensaje' => 'required|string|min:2',
         ]);
 
         $anticipo = Anticipo::with('area')->findOrFail($id);
@@ -218,7 +218,7 @@ class AnticipoController extends Controller
         }
 
         $request->validate([
-            'mensaje' => 'required|string|min:10',
+            'mensaje' => 'required|string|min:2',
         ]);
 
         $anticipo = Anticipo::with('area')->findOrFail($id);

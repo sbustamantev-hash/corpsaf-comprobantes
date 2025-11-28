@@ -485,7 +485,7 @@ class ComprobanteController extends Controller
         }
 
         $request->validate([
-            'mensaje' => 'nullable|string|min:5',
+            'mensaje' => 'nullable|string|min:2',
             'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'
         ]);
 
