@@ -45,7 +45,7 @@ class ComprobanteController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            $anticipos = Anticipo::with(['banco', 'creador', 'usuario', 'comprobantes'])
+            $anticipos = Anticipo::with(['banco', 'creador', 'usuario'])
                 ->where('area_id', $user->area_id)
                 ->orderBy('fecha', 'desc')
                 ->get();
@@ -57,7 +57,7 @@ class ComprobanteController extends Controller
                 ->orderBy('id', 'desc')
                 ->get();
 
-            $anticipos = Anticipo::with(['banco', 'creador', 'comprobantes'])
+            $anticipos = Anticipo::with(['banco', 'creador'])
                 ->where('user_id', $user->id)
                 ->orderBy('fecha', 'desc')
                 ->get();
@@ -86,6 +86,30 @@ class ComprobanteController extends Controller
             ));
         }
 
+        // Calcular estadísticas para Area Admin basadas en Anticipos
+        if ($user->isAreaAdmin()) {
+            // Sobrescribir las variables que se usan en la vista para las tarjetas
+            // La vista usa $pendientes, $aprobados, $rechazados, $total
+            // Pero estas variables se calculan en la vista actualmente.
+            // Vamos a pasarlas explícitamente para asegurar que se usen las de anticipos.
+
+            $pendientes = $anticipos->whereIn('estado', ['pendiente', 'en_observacion'])->count();
+            $aprobados = $anticipos->where('estado', 'aprobado')->count();
+            $rechazados = $anticipos->where('estado', 'rechazado')->count();
+            $total = $anticipos->count();
+
+            return view('comprobantes.index', compact(
+                'comprobantes',
+                'anticipos',
+                'tiposComprobante',
+                'operadores',
+                'pendientes',
+                'aprobados',
+                'rechazados',
+                'total'
+            ));
+        }
+
         return view('comprobantes.index', compact('comprobantes', 'anticipos', 'tiposComprobante', 'operadores'));
     }
 
@@ -106,6 +130,11 @@ class ComprobanteController extends Controller
 
             if ($anticipo->user_id !== $user->id) {
                 abort(403, 'No tienes permisos para subir comprobantes de este anticipo.');
+            }
+
+            // Verificar si el anticipo está bloqueado
+            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes agregar comprobantes a un anticipo aprobado o rechazado.');
             }
         }
 
@@ -160,6 +189,11 @@ class ComprobanteController extends Controller
 
             if ($anticipo->user_id !== $user->id) {
                 abort(403, 'No puedes registrar comprobantes para este anticipo.');
+            }
+
+            // Verificar si el anticipo está bloqueado
+            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes agregar comprobantes a un anticipo aprobado o rechazado.');
             }
         }
 
@@ -303,7 +337,7 @@ class ComprobanteController extends Controller
 
         // Obtener el concepto para verificar si es "OTROS"
         $conceptoModel = \App\Models\Concepto::findOrFail($request->concepto);
-        
+
         $comprobante->tipo = $request->tipo;
         $comprobante->concepto_id = $request->concepto;
         $comprobante->concepto_otro = strtoupper($conceptoModel->nombre) === 'OTROS' ? $request->concepto_otro : null;
@@ -339,6 +373,14 @@ class ComprobanteController extends Controller
         // Si es operador, solo puede eliminar sus propios comprobantes
         if (!$user->isAdmin() && $comprobante->user_id !== $user->id) {
             abort(403, 'No tienes permisos para eliminar este comprobante.');
+        }
+
+        // Verificar si el anticipo asociado está bloqueado
+        if ($comprobante->anticipo_id) {
+            $anticipo = Anticipo::findOrFail($comprobante->anticipo_id);
+            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes eliminar un comprobante de un anticipo aprobado o rechazado.');
+            }
         }
 
         // Borrar archivo si existe
