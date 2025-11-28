@@ -16,9 +16,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Obtener Empresas
-        $areaVentas = Area::where('codigo', 'AREA-VENTAS')->first();
-        $areaProduccion = Area::where('codigo', 'AREA-PROD')->first();
-        $areaLogistica = Area::where('codigo', 'AREA-LOG')->first();
+        $areaVentas = Area::where('codigo', '20123456789')->first();
+        $areaProduccion = Area::where('codigo', '20123456790')->first();
+        $areaLogistica = Area::where('codigo', '20123456791')->first();
 
         // Super Administrador (sin Empresa)
         User::updateOrCreate(

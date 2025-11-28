@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             ConceptoSeeder::class,
             AreaSeeder::class,
             UserSeeder::class,
+            DatosPruebaSeeder::class,
         ]);
     }
 }
