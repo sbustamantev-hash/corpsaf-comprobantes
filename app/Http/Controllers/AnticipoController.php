@@ -112,7 +112,7 @@ class AnticipoController extends Controller
             'fecha' => 'required|date',
             'monto' => 'required|numeric|min:0.01',
             'detalle' => 'nullable|string',
-            'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:40960',
         ]);
 
         $archivoPath = $request->file('archivo')->store('comprobantes', ['disk' => 'public']);

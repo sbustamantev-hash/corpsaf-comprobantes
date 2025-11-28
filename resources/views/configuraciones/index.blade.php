@@ -61,7 +61,7 @@
                 @error('logo')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-                <p class="mt-1 text-xs text-gray-500">Formatos permitidos: JPG, PNG, GIF, SVG. Tamaño máximo: 2MB</p>
+                <p class="mt-1 text-xs text-gray-500">Formatos permitidos: JPG, PNG, GIF, SVG. Tamaño máximo: 40MB</p>
             </div>
 
             <!-- Vista Previa -->

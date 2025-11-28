@@ -139,7 +139,7 @@
                                 </label>
                                 <p class="pl-1">o arrastra y suelta</p>
                             </div>
-                            <p class="text-xs text-gray-500">PNG, JPG, PDF hasta 2MB</p>
+                            <p class="text-xs text-gray-500">PNG, JPG, PDF hasta 40MB</p>
                             <p id="file-name" class="text-xs text-green-600 mt-2 hidden"></p>
                         </div>
                     </div>

@@ -41,7 +41,7 @@ class ConfiguracionController extends Controller
 
         $request->validate([
             'nombre_app' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:40960',
             'nombre_empresa' => 'nullable|string|max:255'
         ]);
 
@@ -80,7 +80,7 @@ class ConfiguracionController extends Controller
         }
 
         $request->validate([
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:40960',
             'nombre_empresa' => 'required|string|max:255'
         ]);
 

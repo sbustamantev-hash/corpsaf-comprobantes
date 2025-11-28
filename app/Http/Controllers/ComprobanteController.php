@@ -127,7 +127,7 @@ class ComprobanteController extends Controller
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
             // Máximo 100 MB (100 * 1024 KB)
-            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:102400',
+            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960',
             'anticipo_id' => 'nullable|exists:anticipos,id'
         ]);
 
@@ -236,7 +236,7 @@ class ComprobanteController extends Controller
             'monto' => 'required|numeric',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
-            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'
         ]);
 
         /** @var \App\Models\User $user */
@@ -453,7 +453,7 @@ class ComprobanteController extends Controller
 
         $request->validate([
             'mensaje' => 'nullable|string|min:5',
-            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'
         ]);
 
         // Al menos mensaje o archivo debe estar presente
