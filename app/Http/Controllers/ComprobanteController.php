@@ -45,7 +45,7 @@ class ComprobanteController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            $anticipos = Anticipo::with(['banco', 'creador', 'usuario'])
+            $anticipos = Anticipo::with(['banco', 'creador', 'usuario', 'comprobantes'])
                 ->where('area_id', $user->area_id)
                 ->orderBy('fecha', 'desc')
                 ->get();
@@ -57,7 +57,7 @@ class ComprobanteController extends Controller
                 ->orderBy('id', 'desc')
                 ->get();
 
-            $anticipos = Anticipo::with(['banco', 'creador'])
+            $anticipos = Anticipo::with(['banco', 'creador', 'comprobantes'])
                 ->where('user_id', $user->id)
                 ->orderBy('fecha', 'desc')
                 ->get();

@@ -284,6 +284,30 @@
                                     $totalComprobado = $anticipo->comprobantes->sum('monto');
                                     $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
                                     $restante = $anticipo->importe - $totalComprobado; // Permite valores negativos
+                                    
+                                    // Calcular estado del anticipo basado en los estados de sus comprobantes
+                                    $estadoAnticipo = 'pendiente'; // Por defecto
+                                    if ($anticipo->comprobantes->count() > 0) {
+                                        $todosAprobados = $anticipo->comprobantes->every(function($comp) {
+                                            return $comp->estado === 'aprobado';
+                                        });
+                                        $todosRechazados = $anticipo->comprobantes->every(function($comp) {
+                                            return $comp->estado === 'rechazado';
+                                        });
+                                        $hayEnObservacion = $anticipo->comprobantes->contains(function($comp) {
+                                            return $comp->estado === 'en_observacion';
+                                        });
+                                        
+                                        if ($todosAprobados) {
+                                            $estadoAnticipo = 'aprobado';
+                                        } elseif ($todosRechazados) {
+                                            $estadoAnticipo = 'rechazado';
+                                        } elseif ($hayEnObservacion) {
+                                            $estadoAnticipo = 'en_observacion';
+                                        } else {
+                                            $estadoAnticipo = 'pendiente';
+                                        }
+                                    }
                                 @endphp
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -321,9 +345,17 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($anticipo->estado === 'completo')
+                                        @if($estadoAnticipo === 'aprobado')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                <i class="fas fa-check-circle mr-1"></i>Completo
+                                                <i class="fas fa-check-circle mr-1"></i>Aprobado
+                                            </span>
+                                        @elseif($estadoAnticipo === 'rechazado')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-times-circle mr-1"></i>Rechazado
+                                            </span>
+                                        @elseif($estadoAnticipo === 'en_observacion')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-eye mr-1"></i>En observación
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -332,11 +364,15 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{ route('comprobantes.create', ['anticipo_id' => $anticipo->id]) }}"
-                                           class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center space-x-2">
-                                            <i class="fas fa-file-upload"></i>
-                                            <span>Subir Comprobante</span>
-                                        </a>
+                                        @if(!in_array($estadoAnticipo, ['aprobado', 'rechazado']))
+                                            <a href="{{ route('comprobantes.create', ['anticipo_id' => $anticipo->id]) }}"
+                                               class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center space-x-2">
+                                                <i class="fas fa-file-upload"></i>
+                                                <span>Subir Comprobante</span>
+                                            </a>
+                                        @else
+                                            <span class="text-xs text-gray-500 italic">No disponible</span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @if($anticipo->comprobantes->count() > 0)
@@ -377,10 +413,24 @@
                                                                     <span class="text-xs text-red-600 font-medium">
                                                                         <i class="fas fa-times-circle mr-1"></i>Rechazado
                                                                     </span>
+                                                                @elseif($comprobante->estado === 'en_observacion')
+                                                                    <span class="text-xs text-blue-600 font-medium">
+                                                                        <i class="fas fa-eye mr-1"></i>En observación
+                                                                    </span>
                                                                 @else
                                                                     <span class="text-xs text-yellow-600 font-medium">
                                                                         <i class="fas fa-clock mr-1"></i>Pendiente
                                                                     </span>
+                                                                @endif
+                                                                @if(
+                                                                    Auth::id() === $comprobante->user_id &&
+                                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado'])
+                                                                )
+                                                                    <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
+                                                                       class="text-yellow-600 hover:text-yellow-800 text-sm"
+                                                                       title="Editar comprobante">
+                                                                        <i class="fas fa-edit mr-1"></i>Editar
+                                                                    </a>
                                                                 @endif
                                                             </div>
                                                         </div>
