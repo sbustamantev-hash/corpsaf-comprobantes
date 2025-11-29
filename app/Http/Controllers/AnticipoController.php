@@ -166,7 +166,7 @@ class AnticipoController extends Controller
             }
         }
 
-        $totalComprobado = $anticipo->comprobantes->sum('monto');
+        $totalComprobado = $anticipo->comprobantes()->where('estado', 'aprobado')->sum('monto');
         $restante = $anticipo->importe - $totalComprobado; // Permite valores negativos
         $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
 
@@ -369,7 +369,7 @@ class AnticipoController extends Controller
 
         // Detalle de comprobantes
         $saldo = 0;
-        foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
+        foreach ($anticipo->comprobantes->where('estado', 'aprobado')->sortBy('fecha') as $comprobante) {
             $tipoComprobante = \App\Models\TipoComprobante::where('codigo', $comprobante->tipo)->first();
             $saldo += $comprobante->monto;
             $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
@@ -386,14 +386,14 @@ class AnticipoController extends Controller
         }
 
         // Total
-        $totalGastos = $anticipo->comprobantes->sum('monto');
+        $totalGastos = $anticipo->comprobantes->where('estado', 'aprobado')->sum('monto');
         $data[] = ['TOTALES', '', '', '', number_format($totalGastos, 2), number_format($saldo, 2)];
         $data[] = [];
-        
+
         // Resumen financiero
         $data[] = ['IMPORTE RECIBIDO:', number_format($anticipo->importe, 2)];
         $data[] = ['TOTAL GASTOS:', number_format($totalGastos, 2)];
-        
+
         // Calcular diferencia
         $diferencia = $totalGastos - $anticipo->importe;
         if ($diferencia < 0) {
@@ -403,15 +403,15 @@ class AnticipoController extends Controller
         } else {
             $data[] = ['SALDO:', '0.00'];
         }
-        
+
         $data[] = [];
         $data[] = [];
-        
+
         // Cuadro detallado de comprobantes
         $data[] = ['DETALLE DE COMPROBANTES'];
         $data[] = ['Nº', 'FECHA', 'EMPRESA', 'PROVEEDOR', 'NUM DE SERIE', 'NUMERO DE COMPROBANTE', 'MONTO'];
-        
-        foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
+
+        foreach ($anticipo->comprobantes->where('estado', 'aprobado')->sortBy('fecha') as $comprobante) {
             $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
                 ? $comprobante->fecha
                 : Carbon::parse($comprobante->fecha);
@@ -434,12 +434,12 @@ class AnticipoController extends Controller
      */
     private function generatePdfHtml($anticipo)
     {
-        $totalGastos = $anticipo->comprobantes->sum('monto');
+        $totalGastos = $anticipo->comprobantes->where('estado', 'aprobado')->sum('monto');
         $saldo = 0;
 
         // Resumen por conceptos
         $resumenConceptos = [];
-        foreach ($anticipo->comprobantes as $comp) {
+        foreach ($anticipo->comprobantes->where('estado', 'aprobado') as $comp) {
             $tipoComp = \App\Models\TipoComprobante::where('codigo', $comp->tipo)->first();
             $concepto = $tipoComp->descripcion ?? $comp->tipo;
             if (!isset($resumenConceptos[$concepto])) {
@@ -489,7 +489,7 @@ class AnticipoController extends Controller
 
         // Tabla de detalle
         $html .= '<table><thead><tr><th>FECHA</th><th>TIPO DOCUMENTO</th><th>N° DOCUMENTO</th><th>DENOMINACIÓN / RAZÓN SOCIAL</th><th>DESCRIPCIÓN</th><th class="text-right">HABER</th><th class="text-right">SALDO</th></tr></thead><tbody>';
-        foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
+        foreach ($anticipo->comprobantes->where('estado', 'aprobado')->sortBy('fecha') as $comprobante) {
             $tipoComprobante = \App\Models\TipoComprobante::where('codigo', $comprobante->tipo)->first();
             $saldo += $comprobante->monto;
             $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
@@ -527,10 +527,10 @@ class AnticipoController extends Controller
             $diferenciaLabel = '<strong>(B) SALDO:</strong>';
         }
         $html .= '<div class="info-row" style="margin-top: 20px;"><span class="info-label">' . $diferenciaLabel . '</span><span class="info-value">' . number_format(abs($diferencia), 2) . '</span></div>';
-        
+
         // Cuadro detallado de comprobantes
         $html .= '<table style="margin-top: 20px;"><thead><tr><th>Nº</th><th>FECHA</th><th>EMPRESA</th><th>PROVEEDOR</th><th>NUM DE SERIE</th><th>NUMERO DE COMPROBANTE</th><th class="text-right">MONTO</th></tr></thead><tbody>';
-        foreach ($anticipo->comprobantes->sortBy('fecha') as $comprobante) {
+        foreach ($anticipo->comprobantes->where('estado', 'aprobado')->sortBy('fecha') as $comprobante) {
             $fechaComprobante = $comprobante->fecha instanceof \Carbon\Carbon
                 ? $comprobante->fecha
                 : Carbon::parse($comprobante->fecha);

@@ -515,4 +515,56 @@ class ComprobanteController extends Controller
         $path = Storage::disk('public')->path($observacion->archivo);
         return response()->download($path, basename($observacion->archivo));
     }
+
+    /**
+     * Aprobar comprobante individual
+     */
+    public function aprobar(Request $request, $id)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Solo super admin y area admin pueden aprobar
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores pueden aprobar comprobantes.');
+        }
+
+        $comprobante = Comprobante::with('user')->findOrFail($id);
+
+        // Area admin solo puede aprobar comprobantes de su Empresa
+        if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes aprobar comprobantes de tu Empresa.');
+        }
+
+        $comprobante->estado = 'aprobado';
+        $comprobante->save();
+
+        return redirect()->back()->with('success', 'Comprobante aprobado correctamente.');
+    }
+
+    /**
+     * Rechazar comprobante individual
+     */
+    public function rechazar(Request $request, $id)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Solo super admin y area admin pueden rechazar
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores pueden rechazar comprobantes.');
+        }
+
+        $comprobante = Comprobante::with('user')->findOrFail($id);
+
+        // Area admin solo puede rechazar comprobantes de su Empresa
+        if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes rechazar comprobantes de tu Empresa.');
+        }
+
+        $comprobante->estado = 'rechazado';
+        $comprobante->save();
+
+        return redirect()->back()->with('success', 'Comprobante rechazado correctamente.');
+    }
 }

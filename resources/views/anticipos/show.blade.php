@@ -182,6 +182,7 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                                 </tr>
                             </thead>
@@ -192,6 +193,21 @@
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $comprobante->tipo }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $comprobante->fecha }}</td>
                                         <td class="px-4 py-3 text-sm font-semibold text-gray-900">S/ {{ number_format($comprobante->monto, 2) }}</td>
+                                        <td class="px-4 py-3 text-sm">
+                                            @if($comprobante->estado === 'aprobado')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Aprobado
+                                                </span>
+                                            @elseif($comprobante->estado === 'rechazado')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    Rechazado
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    Pendiente
+                                                </span>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-3 text-sm font-medium">
                                             <div class="flex items-center space-x-2">
                                                 <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
@@ -201,13 +217,33 @@
                                                 </a>
                                                 @if(
                                                     Auth::id() === $comprobante->user_id &&
-                                                    !in_array($anticipo->estado, ['aprobado', 'rechazado'])
+                                                    !in_array($anticipo->estado, ['aprobado', 'rechazado']) &&
+                                                    $comprobante->estado !== 'aprobado'
                                                 )
                                                     <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
                                                        class="text-yellow-600 hover:text-yellow-900"
                                                        title="Editar comprobante">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
+                                                @endif
+                                                
+                                                @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && !in_array($anticipo->estado, ['aprobado', 'rechazado']))
+                                                    @if($comprobante->estado !== 'aprobado')
+                                                        <form action="{{ route('comprobantes.aprobar', $comprobante->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="text-green-600 hover:text-green-900" title="Aprobar comprobante">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                    @if($comprobante->estado !== 'rechazado')
+                                                        <form action="{{ route('comprobantes.rechazar', $comprobante->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="text-red-600 hover:text-red-900" title="Rechazar comprobante">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </td>

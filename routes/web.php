@@ -49,6 +49,10 @@ Route::middleware('auth')->group(function () {
     Route::post('comprobantes/{id}/observacion', [ComprobanteController::class, 'agregarObservacion'])->name('comprobantes.observacion');
     Route::get('observaciones/{id}/archivo', [ComprobanteController::class, 'downloadObservacion'])->name('observaciones.download');
 
+    // Rutas para aprobar/rechazar comprobantes individuales
+    Route::post('comprobantes/{id}/aprobar', [ComprobanteController::class, 'aprobar'])->name('comprobantes.aprobar');
+    Route::post('comprobantes/{id}/rechazar', [ComprobanteController::class, 'rechazar'])->name('comprobantes.rechazar');
+
     // RUTAS CRUD DE EmpresaS - Solo super admin
     Route::resource('areas', AreaController::class);
 
@@ -59,16 +63,16 @@ Route::middleware('auth')->group(function () {
 
     // RUTAS CRUD DE USUARIOS - Admin y Area Admin
     Route::resource('users', UserController::class);
-    
+
     // RUTAS CRUD DE TIPOS DE COMPROBANTE - Solo super admin
     Route::resource('tipos-comprobante', TipoComprobanteController::class);
-    
+
     // RUTAS CRUD DE BANCOS - Solo super admin
     Route::resource('bancos', BancoController::class);
-    
+
     // RUTAS CRUD DE CONCEPTOS - Super admin y Area Admin
     Route::resource('conceptos', ConceptoController::class);
-    
+
     // RUTAS DE CONFIGURACIONES - Solo super admin
     Route::get('configuraciones', [ConfiguracionController::class, 'index'])->name('configuraciones.index');
     Route::put('configuraciones', [ConfiguracionController::class, 'update'])->name('configuraciones.update');
