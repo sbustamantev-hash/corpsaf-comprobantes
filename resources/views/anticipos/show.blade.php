@@ -150,9 +150,15 @@
                 <div class="space-y-4">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-700">Total Comprobado</span>
-                            <span class="text-lg font-bold text-gray-900">S/ {{ number_format($totalComprobado, 2) }}</span>
+                            <span class="text-sm font-medium text-gray-700">Total Aprobado</span>
+                            <span class="text-lg font-bold text-green-600">S/ {{ number_format($totalComprobado, 2) }}</span>
                         </div>
+                        @if($totalRechazado > 0)
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">Total Rechazado</span>
+                                <span class="text-lg font-bold text-red-600">S/ {{ number_format($totalRechazado, 2) }}</span>
+                            </div>
+                        @endif
                         <div class="w-full bg-gray-200 rounded-full h-3">
                             <div class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: {{ $porcentaje }}%"></div>
                         </div>
@@ -267,11 +273,11 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Resumen</h2>
                 <div class="space-y-4">
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
-                        <span class="text-sm text-gray-600">Anticipo Total</span>
+                        <span class="text-sm text-gray-600">Importe Otorgado</span>
                         <span class="text-lg font-bold text-gray-900">S/ {{ number_format($anticipo->importe, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
-                        <span class="text-sm text-gray-600">Saldo Justificado</span>
+                        <span class="text-sm text-gray-600">Importe Aprobado</span>
                         <span class="text-lg font-semibold text-blue-600">S/ {{ number_format($totalComprobado, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center">

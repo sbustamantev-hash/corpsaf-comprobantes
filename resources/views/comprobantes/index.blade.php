@@ -21,7 +21,7 @@
             $totalAnticipos = $anticipos->count();
             $totalAsignado = $anticipos->sum('importe');
             $totalComprobado = $anticipos->sum(function ($a) {
-                return $a->comprobantes->sum('monto'); });
+                return $a->comprobantes->where('estado', 'aprobado')->sum('monto'); });
         } else {
             // Métricas para admin: basadas en anticipos (no comprobantes)
             if ($user->isAdmin()) {
@@ -281,7 +281,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($anticipos as $anticipo)
                                 @php
-                                    $totalComprobado = $anticipo->comprobantes->sum('monto');
+                                    $totalComprobado = $anticipo->comprobantes->where('estado', 'aprobado')->sum('monto');
                                     $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
                                     $restante = $anticipo->importe - $totalComprobado; // Permite valores negativos
                                     $estadoAnticipo = $anticipo->estado; // Usar directamente el estado del anticipo
@@ -453,7 +453,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($anticipos as $anticipo)
                                 @php
-                                    $totalComprobado = $anticipo->comprobantes->sum('monto');
+                                    $totalComprobado = $anticipo->comprobantes->where('estado', 'aprobado')->sum('monto');
                                 @endphp
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4 text-sm text-gray-900">

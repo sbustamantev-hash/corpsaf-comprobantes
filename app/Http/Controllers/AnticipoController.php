@@ -167,10 +167,11 @@ class AnticipoController extends Controller
         }
 
         $totalComprobado = $anticipo->comprobantes()->where('estado', 'aprobado')->sum('monto');
+        $totalRechazado = $anticipo->comprobantes()->where('estado', 'rechazado')->sum('monto');
         $restante = $anticipo->importe - $totalComprobado; // Permite valores negativos
         $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
 
-        return view('anticipos.show', compact('anticipo', 'totalComprobado', 'restante', 'porcentaje'));
+        return view('anticipos.show', compact('anticipo', 'totalComprobado', 'totalRechazado', 'restante', 'porcentaje'));
     }
 
     /**
