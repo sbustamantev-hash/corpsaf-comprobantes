@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\Configuracion;
+
 class SistemaController extends Controller
 {
     /**
@@ -16,6 +18,8 @@ class SistemaController extends Controller
             return redirect()->route('login');
         }
 
+        $logoPath = Configuracion::obtener('logo_path', null);
+
         // Por ahora solo hay un sistema disponible
         $sistemas = [
             [
@@ -26,10 +30,19 @@ class SistemaController extends Controller
                 'icono' => 'fa-file-invoice-dollar',
                 'color' => 'blue',
                 'ruta' => route('comprobantes.index')
+            ],
+            [
+                'id' => 'proximamente',
+                'nombre' => 'Nuevo sistema',
+                'subtitulo' => '',
+                'descripcion' => '',
+                'icono' => 'fa-question',
+                'color' => 'gray',
+                'ruta' => '#'
             ]
         ];
 
-        return view('sistemas.index', compact('sistemas'));
+        return view('sistemas.index', compact('sistemas', 'logoPath'));
     }
 
     /**
@@ -49,7 +62,7 @@ class SistemaController extends Controller
         }
 
         return redirect()->route('sistemas.index')
-                         ->with('error', 'Sistema no válido.');
+            ->with('error', 'Estamos programando para ti');
     }
 }
 

@@ -42,7 +42,11 @@
         <!-- Header -->
         <div class="text-center mb-12">
             <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-2xl mb-6 shadow-lg">
-                <i class="fas fa-cubes text-white text-4xl"></i>
+                @if(isset($logoPath) && $logoPath)
+                    <img src="{{ asset('storage/' . $logoPath) }}" alt="Logo" class="w-16 h-16 object-contain">
+                @else
+                    <i class="fas fa-cubes text-white text-4xl"></i>
+                @endif
             </div>
             <h1 class="text-4xl font-bold text-white mb-3 drop-shadow-lg">Bienvenido, {{ Auth::user()->name }}</h1>
             <p class="text-xl text-white drop-shadow">Selecciona el sistema que deseas utilizar</p>
@@ -79,7 +83,12 @@
                                 @endphp
                                 <div
                                     class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fas {{ $sistema['icono'] }} text-white text-2xl"></i>
+                                    @if(isset($logoPath) && $logoPath)
+                                        <img src="{{ asset('storage/' . $logoPath) }}" alt="Logo"
+                                            class="w-12 h-12 object-contain">
+                                    @else
+                                        <i class="fas {{ $sistema['icono'] }} text-white text-2xl"></i>
+                                    @endif
                                 </div>
                             </div>
 
