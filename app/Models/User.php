@@ -116,6 +116,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Verificar si es administrador de Marketing
+     * 
+     * @return bool
+     */
+    public function isMarketingAdmin(): bool
+    {
+        return $this->role === RoleEnum::MARKETING;
+    }
+
+    /**
      * Verificar si es operador/trabajador
      * 
      * @return bool

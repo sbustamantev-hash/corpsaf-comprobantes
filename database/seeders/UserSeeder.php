@@ -33,14 +33,31 @@ class UserSeeder extends Seeder
             ]
         );
 
+        // Eliminar usuario antiguo de marketing si existe para evitar duplicados de email
+        User::where('dni', '11111111')->orWhere('email', 'marketing@corpsaf.com')->delete();
+
+        // Administrador de Marketing
+        User::updateOrCreate(
+            ['dni' => '99999999'],
+            [
+                'name' => 'Marketing',
+                'email' => 'marketing@corpsaf.com',
+                'dni' => '99999999',
+                'password' => Hash::make('99999999'),
+                'role' => Role::MARKETING,
+                'area_id' => null, // Marketing no pertenece a ninguna área
+            ]
+        );
+
+
         // Administradores de Empresa
         if ($areaVentas) {
             User::updateOrCreate(
-                ['dni' => '11111111'],
+                ['dni' => '33333333'],
                 [
                     'name' => 'Admin Ventas',
                     'email' => 'admin.ventas@corpsaf.com',
-                    'dni' => '11111111',
+                    'dni' => '33333333',
                     'password' => Hash::make('admin123'),
                     'role' => Role::AREA_ADMIN,
                     'area_id' => $areaVentas->id,

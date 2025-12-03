@@ -12,6 +12,8 @@ use App\Http\Controllers\BancoController;
 use App\Http\Controllers\SistemaController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\ConceptoController;
+use App\Http\Controllers\RequerimientoController;
+use App\Http\Controllers\MensajeController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -89,4 +91,11 @@ Route::middleware('auth')->group(function () {
     Route::post('anticipos/{anticipo}/rechazar', [AnticipoController::class, 'rechazar'])->name('anticipos.rechazar');
     Route::get('anticipos/{anticipo}/export/pdf', [AnticipoController::class, 'exportPdf'])->name('anticipos.export.pdf');
     Route::get('anticipos/{anticipo}/export/excel', [AnticipoController::class, 'exportExcel'])->name('anticipos.export.excel');
+
+    // RUTAS DE REQUERIMIENTOS - Marketing y Empresas
+    Route::resource('requerimientos', RequerimientoController::class);
+    Route::post('requerimientos/{requerimiento}/progreso', [RequerimientoController::class, 'updateProgress'])
+        ->name('requerimientos.progreso');
+    Route::post('requerimientos/{requerimiento}/mensajes', [MensajeController::class, 'store'])
+        ->name('requerimientos.mensajes.store');
 });

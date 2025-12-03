@@ -34,6 +34,18 @@ class Role
     public const AREA_ADMIN = 'area_admin';
 
     /**
+     * Administrador de Marketing
+     * 
+     * Permisos:
+     * - Ver todos los requerimientos de todas las empresas
+     * - Responder a requerimientos
+     * - Actualizar porcentaje de avance
+     * - Cambiar estado de requerimientos
+     * - NO puede acceder al Sistema de Gestión
+     */
+    public const MARKETING = 'marketing';
+
+    /**
      * Operador/Trabajador
      * 
      * Permisos:
@@ -60,6 +72,7 @@ class Role
         return [
             self::ADMIN,
             self::AREA_ADMIN,
+            self::MARKETING,
             self::OPERADOR,
         ];
     }
@@ -129,6 +142,7 @@ class Role
         return match ($role) {
             self::ADMIN => 'Super Administrador',
             self::AREA_ADMIN => 'Administrador de Empresa',
+            self::MARKETING => 'Administrador de Marketing',
             self::OPERADOR => 'Usuario / Trabajador',
             self::TRABAJADOR => 'Usuario / Trabajador',
             default => 'Desconocido',

@@ -19,8 +19,9 @@ class SistemaController extends Controller
         }
 
         $logoPath = Configuracion::obtener('logo_path', null);
+        $user = Auth::user();
 
-        // Por ahora solo hay un sistema disponible
+        // Sistema de gestión - disponible para todos
         $sistemas = [
             [
                 'id' => 'comprobantes',
@@ -30,16 +31,19 @@ class SistemaController extends Controller
                 'icono' => 'fa-file-invoice-dollar',
                 'color' => 'blue',
                 'ruta' => route('comprobantes.index')
-            ],
-            [
-                'id' => 'proximamente',
-                'nombre' => 'Nuevo sistema',
-                'subtitulo' => '',
-                'descripcion' => '',
-                'icono' => 'fa-question',
-                'color' => 'gray',
-                'ruta' => '#'
             ]
+        ];
+
+        // Nuevo sistema - solo para administradores (super admin y area admin)
+        // Nuevo sistema - visible para todos, pero restringido al ingresar
+        $sistemas[] = [
+            'id' => 'marketing',
+            'nombre' => 'Nuevo sistema',
+            'subtitulo' => '',
+            'descripcion' => '',
+            'icono' => 'fa-question',
+            'color' => 'gray',
+            'ruta' => route('requerimientos.index')
         ];
 
         return view('sistemas.index', compact('sistemas', 'logoPath'));
@@ -59,6 +63,15 @@ class SistemaController extends Controller
         // Por ahora solo hay un sistema
         if ($sistemaId === 'comprobantes') {
             return redirect()->route('comprobantes.index');
+        }
+
+        if ($sistemaId === 'marketing') {
+            $user = Auth::user();
+            if (!$user->isAdmin() && !$user->isAreaAdmin() && !$user->isMarketingAdmin()) {
+                return redirect()->route('sistemas.index')
+                    ->with('error', 'No tienes permisos para acceder a este sistema.');
+            }
+            return redirect()->route('requerimientos.index');
         }
 
         return redirect()->route('sistemas.index')
