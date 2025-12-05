@@ -63,7 +63,7 @@ class User extends Authenticatable
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
-            'dni' => ['required', 'string', 'max:20', 'unique:users,dni'],
+            'dni' => ['required', 'string', 'max:20'],
             'telefono' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', Rule::in(RoleEnum::all())],

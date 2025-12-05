@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
 
         // Super Administrador (sin Empresa)
         User::updateOrCreate(
-            ['dni' => '00000000'],
+            ['dni' => '00000000', 'role' => Role::ADMIN],
             [
                 'name' => 'Super Administrador',
                 'email' => 'admin@corpsaf.com',
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
 
         // Administrador de Marketing
         User::updateOrCreate(
-            ['dni' => '99999999'],
+            ['dni' => '99999999', 'role' => Role::MARKETING],
             [
                 'name' => 'Marketing',
                 'email' => 'marketing@corpsaf.com',
@@ -52,8 +52,9 @@ class UserSeeder extends Seeder
 
         // Administradores de Empresa
         if ($areaVentas) {
+            // Crear admin de empresa
             User::updateOrCreate(
-                ['dni' => '33333333'],
+                ['dni' => '33333333', 'role' => Role::AREA_ADMIN],
                 [
                     'name' => 'Admin Ventas',
                     'email' => 'admin.ventas@corpsaf.com',
@@ -63,17 +64,44 @@ class UserSeeder extends Seeder
                     'area_id' => $areaVentas->id,
                 ]
             );
+
+            // Crear también como operador (mismo DNI, diferente rol)
+            User::updateOrCreate(
+                ['dni' => '33333333', 'role' => Role::OPERADOR],
+                [
+                    'name' => 'Admin Ventas',
+                    'email' => 'admin.ventas.operador@corpsaf.com',
+                    'dni' => '33333333',
+                    'password' => Hash::make('admin123'),
+                    'role' => Role::OPERADOR,
+                    'area_id' => $areaVentas->id,
+                ]
+            );
         }
 
         if ($areaProduccion) {
+            // Crear admin de empresa
             User::updateOrCreate(
-                ['dni' => '22222222'],
+                ['dni' => '22222222', 'role' => Role::AREA_ADMIN],
                 [
                     'name' => 'Admin Producción',
                     'email' => 'admin.produccion@corpsaf.com',
                     'dni' => '22222222',
                     'password' => Hash::make('admin123'),
                     'role' => Role::AREA_ADMIN,
+                    'area_id' => $areaProduccion->id,
+                ]
+            );
+
+            // Crear también como operador (mismo DNI, diferente rol)
+            User::updateOrCreate(
+                ['dni' => '22222222', 'role' => Role::OPERADOR],
+                [
+                    'name' => 'Admin Producción',
+                    'email' => 'admin.produccion.operador@corpsaf.com',
+                    'dni' => '22222222',
+                    'password' => Hash::make('admin123'),
+                    'role' => Role::OPERADOR,
                     'area_id' => $areaProduccion->id,
                 ]
             );
@@ -88,7 +116,7 @@ class UserSeeder extends Seeder
 
             foreach ($operadoresVentas as $dni => $nombre) {
                 User::updateOrCreate(
-                    ['dni' => $dni],
+                    ['dni' => $dni, 'role' => Role::OPERADOR],
                     [
                         'name' => $nombre,
                         'email' => $dni . '@corpsaf.com',
@@ -110,7 +138,7 @@ class UserSeeder extends Seeder
 
             foreach ($operadoresProduccion as $dni => $nombre) {
                 User::updateOrCreate(
-                    ['dni' => $dni],
+                    ['dni' => $dni, 'role' => Role::OPERADOR],
                     [
                         'name' => $nombre,
                         'email' => $dni . '@corpsaf.com',
@@ -126,7 +154,7 @@ class UserSeeder extends Seeder
         // Operadores - Empresa de Logística
         if ($areaLogistica) {
             User::updateOrCreate(
-                ['dni' => '55667788'],
+                ['dni' => '55667788', 'role' => Role::OPERADOR],
                 [
                     'name' => 'Pedro Rodríguez',
                     'email' => '55667788@corpsaf.com',

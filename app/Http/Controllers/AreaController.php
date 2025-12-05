@@ -88,7 +88,20 @@ class AreaController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'dni' => 'required|string|max:20|unique:users,dni',
+            'dni' => [
+                'required',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Verificar que no exista el mismo DNI con el mismo rol
+                    $exists = User::where('dni', $value)
+                        ->where('role', $request->role)
+                        ->exists();
+                    if ($exists) {
+                        $fail('Ya existe un usuario con este DNI y rol.');
+                    }
+                }
+            ],
             'email' => 'nullable|string|email|max:255|unique:users,email',
             'telefono' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
@@ -192,7 +205,21 @@ class AreaController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'dni' => 'required|string|max:20|unique:users,dni,' . $user->id,
+            'dni' => [
+                'required',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) use ($request, $user) {
+                    // Verificar que no exista el mismo DNI con el mismo rol (excluyendo el usuario actual)
+                    $exists = User::where('dni', $value)
+                        ->where('role', $request->role)
+                        ->where('id', '!=', $user->id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('Ya existe un usuario con este DNI y rol.');
+                    }
+                }
+            ],
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'telefono' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:8',
