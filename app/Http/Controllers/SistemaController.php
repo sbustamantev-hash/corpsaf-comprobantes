@@ -38,7 +38,7 @@ class SistemaController extends Controller
         // Nuevo sistema - visible para todos, pero restringido al ingresar
         $sistemas[] = [
             'id' => 'marketing',
-            'nombre' => 'Nuevo sistema',
+            'nombre' => 'Requerimientos Marketing',
             'subtitulo' => '',
             'descripcion' => '',
             'icono' => 'fa-question',

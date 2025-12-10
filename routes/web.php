@@ -55,6 +55,9 @@ Route::middleware('auth')->group(function () {
     // Rutas para aprobar/rechazar comprobantes individuales
     Route::post('comprobantes/{id}/aprobar', [ComprobanteController::class, 'aprobar'])->name('comprobantes.aprobar');
     Route::post('comprobantes/{id}/rechazar', [ComprobanteController::class, 'rechazar'])->name('comprobantes.rechazar');
+    
+    // Ruta para exportar comprobantes aprobados de la empresa (solo Area Admin)
+    Route::get('comprobantes/export/excel', [ComprobanteController::class, 'exportExcel'])->name('comprobantes.export.excel');
 
     // RUTAS CRUD DE EmpresaS - Solo super admin
     Route::resource('areas', AreaController::class);

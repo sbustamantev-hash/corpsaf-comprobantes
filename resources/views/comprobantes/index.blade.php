@@ -207,6 +207,20 @@
     @endif
 
     @if(Auth::user()->isAreaAdmin())
+        <!-- Sección de Reportes -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Reportes</h3>
+                <p class="text-sm text-gray-500 mt-1">Exporta información de comprobantes aprobados de tu empresa</p>
+            </div>
+            <div class="p-6">
+                <a href="{{ route('comprobantes.export.excel') }}" 
+                   class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+                    <i class="fas fa-file-excel mr-2"></i>Exportar Excel
+                </a>
+            </div>
+        </div>
+
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
             <div class="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div>

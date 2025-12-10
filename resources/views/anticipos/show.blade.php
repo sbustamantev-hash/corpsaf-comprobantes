@@ -7,10 +7,10 @@
     @auth
         @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo', 'en_observacion']))
             <div class="flex items-center space-x-3">
-                <a href="{{ route('anticipos.export.excel', $anticipo->id) }}" 
+                {{-- <a href="{{ route('anticipos.export.excel', $anticipo->id) }}" 
                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
                     <i class="fas fa-file-excel mr-2"></i>Exportar Excel
-                </a>
+                </a> --}}
                 <a href="{{ route('anticipos.export.pdf', $anticipo->id) }}" 
                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
                     <i class="fas fa-file-pdf mr-2"></i>Exportar PDF
@@ -28,10 +28,10 @@
             </div>
         @else
             <div class="flex items-center space-x-3">
-                <a href="{{ route('anticipos.export.excel', $anticipo->id) }}" 
+                {{-- <a href="{{ route('anticipos.export.excel', $anticipo->id) }}" 
                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
                     <i class="fas fa-file-excel mr-2"></i>Exportar Excel
-                </a>
+                </a> --}}
                 <a href="{{ route('anticipos.export.pdf', $anticipo->id) }}" 
                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
                     <i class="fas fa-file-pdf mr-2"></i>Exportar PDF

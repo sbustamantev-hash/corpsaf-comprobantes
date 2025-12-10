@@ -11,6 +11,8 @@ use App\Models\Area;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class ComprobanteController extends Controller
 {
@@ -566,5 +568,349 @@ class ComprobanteController extends Controller
         $comprobante->save();
 
         return redirect()->back()->with('success', 'Comprobante rechazado correctamente.');
+    }
+
+    /**
+     * Exportar comprobantes aprobados de la empresa a Excel
+     */
+    public function exportExcel()
+    {
+        $user = Auth::user();
+
+        // Solo Area Admin puede exportar
+        if (!$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores de empresa pueden exportar reportes.');
+        }
+
+        // Verificar que el usuario tenga área asignada
+        if (!$user->area_id) {
+            abort(403, 'No tienes una empresa asignada.');
+        }
+
+        // Primero obtener TODOS los comprobantes de la empresa (sin filtrar por estado) para depuración
+        $todosComprobantes = Comprobante::with(['user', 'concepto'])
+            ->whereHas('user', function ($query) use ($user) {
+                $query->where('area_id', $user->area_id);
+            })
+            ->get();
+        
+        Log::info('Export Excel - Total comprobantes en la empresa: ' . $todosComprobantes->count());
+        Log::info('Export Excel - Area ID: ' . $user->area_id);
+        
+        // Contar por estado
+        $porEstado = $todosComprobantes->groupBy('estado')->map->count();
+        Log::info('Export Excel - Comprobantes por estado: ' . json_encode($porEstado->toArray()));
+        
+        // Obtener todos los comprobantes aprobados de la empresa
+        $comprobantes = Comprobante::with(['user', 'concepto'])
+            ->whereHas('user', function ($query) use ($user) {
+                $query->where('area_id', $user->area_id);
+            })
+            ->where('estado', 'aprobado')
+            ->orderBy('fecha', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // Log para depuración
+        Log::info('Export Excel - Comprobantes aprobados encontrados: ' . $comprobantes->count());
+        
+        // Solo exportar comprobantes aprobados (no exportar todos si no hay aprobados)
+
+        // Si no hay comprobantes, generar Excel vacío con solo encabezados
+        // (en lugar de hacer redirect)
+
+        // Generar nombre del archivo
+        $empresaNombre = $user->area->nombre ?? 'Empresa';
+        $filename = 'reporte_comprobantes_' . str_replace(' ', '_', $empresaNombre) . '_' . date('Ymd') . '.xlsx';
+
+        // Generar Excel usando Office Open XML
+        try {
+            $excelContent = $this->generateExcelFile($comprobantes);
+
+            if (empty($excelContent)) {
+                Log::error('Export Excel - El contenido generado está vacío');
+                return redirect()->route('comprobantes.index')
+                    ->with('error', 'Error al generar el archivo Excel. El archivo está vacío.');
+            }
+        } catch (\Exception $e) {
+            Log::error('Export Excel - Error: ' . $e->getMessage());
+            Log::error('Export Excel - Trace: ' . $e->getTraceAsString());
+            return redirect()->route('comprobantes.index')
+                ->with('error', 'Error al generar el archivo Excel: ' . $e->getMessage());
+        }
+
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Length' => strlen($excelContent),
+        ];
+
+        return response($excelContent, 200, $headers);
+    }
+
+    /**
+     * Generar archivo Excel en formato Office Open XML (.xlsx)
+     */
+    private function generateExcelFile($comprobantes)
+    {
+        // Crear directorio temporal
+        $tempDir = sys_get_temp_dir() . '/excel_' . uniqid();
+        
+        if (!mkdir($tempDir, 0777, true)) {
+            Log::error('No se pudo crear el directorio temporal: ' . $tempDir);
+            throw new \Exception('No se pudo crear el directorio temporal');
+        }
+        
+        if (!mkdir($tempDir . '/xl', 0777, true)) {
+            Log::error('No se pudo crear el directorio xl');
+            throw new \Exception('No se pudo crear el directorio xl');
+        }
+        
+        if (!mkdir($tempDir . '/xl/worksheets', 0777, true)) {
+            Log::error('No se pudo crear el directorio worksheets');
+            throw new \Exception('No se pudo crear el directorio worksheets');
+        }
+        
+        if (!mkdir($tempDir . '/_rels', 0777, true)) {
+            Log::error('No se pudo crear el directorio _rels');
+            throw new \Exception('No se pudo crear el directorio _rels');
+        }
+        
+        if (!mkdir($tempDir . '/xl/_rels', 0777, true)) {
+            Log::error('No se pudo crear el directorio xl/_rels');
+            throw new \Exception('No se pudo crear el directorio xl/_rels');
+        }
+
+        // [Content_Types].xml
+        $contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+    <Default Extension="xml" ContentType="application/xml"/>
+    <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+    <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>';
+        file_put_contents($tempDir . '/[Content_Types].xml', $contentTypes);
+
+        // _rels/.rels
+        $rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+    <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>';
+        file_put_contents($tempDir . '/_rels/.rels', $rels);
+
+        // xl/_rels/workbook.xml.rels
+        $workbookRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+    <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>';
+        file_put_contents($tempDir . '/xl/_rels/workbook.xml.rels', $workbookRels);
+
+        // xl/workbook.xml
+        $workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+    <sheets>
+        <sheet name="Comprobantes" sheetId="1" r:id="rId1"/>
+    </sheets>
+</workbook>';
+        file_put_contents($tempDir . '/xl/workbook.xml', $workbook);
+
+        // Calcular dimensiones (mínimo 1 fila para los encabezados)
+        $maxRow = max(1, $comprobantes->count() + 1); // +1 para los encabezados
+        $maxCol = 7; // 7 columnas
+        
+        // xl/worksheets/sheet1.xml
+        $sheetContent = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+    <dimension ref="A1:' . $this->numberToColumn($maxCol) . $maxRow . '"/>
+    <sheetViews>
+        <sheetView workbookViewId="0">
+            <selection activeCell="A1" sqref="A1"/>
+        </sheetView>
+    </sheetViews>
+    <sheetData>';
+        
+        // Encabezados
+        $rowNum = 1;
+        $headers = ['Nº', 'Fecha', 'Promovedor (RUC)', 'Concepto', 'Monto', 'Serie', 'Número de Comprobante'];
+        $sheetContent .= '<row r="' . $rowNum . '">';
+        foreach ($headers as $col => $header) {
+            $colLetter = $this->numberToColumn($col + 1);
+            $sheetContent .= '<c r="' . $colLetter . $rowNum . '" t="inlineStr"><is><t>' . htmlspecialchars($header, ENT_XML1) . '</t></is></c>';
+        }
+        $sheetContent .= '</row>';
+
+        // Datos
+        $numero = 1;
+        $totalRows = 0;
+        Log::info('Export Excel - Iniciando procesamiento de ' . $comprobantes->count() . ' comprobantes');
+        
+        foreach ($comprobantes as $comprobante) {
+            $rowNum++;
+            $totalRows++;
+            
+            try {
+                Log::debug('Export Excel - Procesando comprobante ID: ' . $comprobante->id);
+                $fecha = $comprobante->fecha instanceof Carbon 
+                    ? $comprobante->fecha 
+                    : Carbon::parse($comprobante->fecha);
+                
+                $concepto = $comprobante->concepto 
+                    ? ($comprobante->concepto->descripcion ?? 'N/A')
+                    : ($comprobante->concepto_otro ?? 'N/A');
+
+                $rowData = [
+                    $numero++, // Nº - número
+                    $fecha->format('d/m/Y'), // Fecha - texto
+                    $comprobante->ruc_empresa ?? 'N/A', // RUC - texto
+                    $concepto, // Concepto - texto
+                    (float) $comprobante->monto, // Monto - número (asegurar que sea float)
+                    $comprobante->serie ?? 'N/A', // Serie - texto
+                    $comprobante->numero ?? 'N/A' // Número - texto
+                ];
+
+                $sheetContent .= '<row r="' . $rowNum . '">';
+                foreach ($rowData as $col => $value) {
+                    $colLetter = $this->numberToColumn($col + 1);
+                    // Columna 0 (Nº) y columna 4 (Monto) son numéricas
+                    if (($col == 0 || $col == 4) && is_numeric($value)) {
+                        $sheetContent .= '<c r="' . $colLetter . $rowNum . '" t="n"><v>' . htmlspecialchars((string)$value, ENT_XML1) . '</v></c>';
+                    } else {
+                        $sheetContent .= '<c r="' . $colLetter . $rowNum . '" t="inlineStr"><is><t>' . htmlspecialchars((string)$value, ENT_XML1) . '</t></is></c>';
+                    }
+                }
+                $sheetContent .= '</row>';
+            } catch (\Exception $e) {
+                // Continuar con el siguiente comprobante si hay error
+                \Log::warning('Error procesando comprobante ID ' . $comprobante->id . ': ' . $e->getMessage());
+                continue;
+            }
+        }
+        
+        // Log final
+        Log::info('Export Excel - Total filas procesadas: ' . $totalRows);
+        
+        // Si no se procesó ningún comprobante, al menos tener los encabezados
+        if ($totalRows == 0) {
+            Log::warning('Export Excel - No se procesaron comprobantes en la exportación');
+        }
+
+        $sheetContent .= '</sheetData>
+</worksheet>';
+        
+        // Verificar que se escribió correctamente
+        $written = file_put_contents($tempDir . '/xl/worksheets/sheet1.xml', $sheetContent);
+        if ($written === false) {
+            $this->deleteDirectory($tempDir);
+            abort(500, 'Error al escribir el archivo de la hoja de cálculo.');
+        }
+
+        // Verificar que todos los archivos necesarios existen
+        $requiredFiles = [
+            '[Content_Types].xml',
+            '_rels/.rels',
+            'xl/workbook.xml',
+            'xl/_rels/workbook.xml.rels',
+            'xl/worksheets/sheet1.xml'
+        ];
+        
+        foreach ($requiredFiles as $file) {
+            if (!file_exists($tempDir . '/' . $file)) {
+                $this->deleteDirectory($tempDir);
+                abort(500, 'Archivo requerido no encontrado: ' . $file);
+            }
+        }
+
+        // Crear archivo ZIP usando comando del sistema
+        $zipFile = sys_get_temp_dir() . '/excel_' . uniqid() . '.zip';
+        $oldCwd = getcwd();
+        
+        try {
+            chdir($tempDir);
+            
+            // Usar ruta absoluta para el zip
+            $zipFileAbsolute = realpath(sys_get_temp_dir()) . '/' . basename($zipFile);
+            
+            // Verificar que el comando zip existe
+            exec("which zip 2>&1", $whichOutput, $whichCode);
+            if ($whichCode !== 0) {
+                throw new \Exception('El comando zip no está disponible en el sistema');
+            }
+            
+            // Crear el ZIP con todos los archivos
+            exec("zip -r " . escapeshellarg($zipFileAbsolute) . " . -q 2>&1", $output, $returnCode);
+            
+            chdir($oldCwd);
+
+            if ($returnCode !== 0) {
+                // Limpiar y retornar error con detalles
+                $errorMsg = implode("\n", $output);
+                $this->deleteDirectory($tempDir);
+                @unlink($zipFileAbsolute);
+                Log::error('Error al generar Excel: ' . $errorMsg);
+                throw new \Exception('Error al generar archivo Excel: ' . $errorMsg);
+            }
+        } catch (\Exception $e) {
+            chdir($oldCwd);
+            $this->deleteDirectory($tempDir);
+            @unlink($zipFileAbsolute ?? '');
+            throw $e;
+        }
+
+        // Verificar que el archivo se creó
+        if (!file_exists($zipFileAbsolute)) {
+            $this->deleteDirectory($tempDir);
+            abort(500, 'No se pudo crear el archivo Excel.');
+        }
+
+        // Leer contenido del ZIP
+        $content = file_get_contents($zipFileAbsolute);
+        
+        if (empty($content)) {
+            $this->deleteDirectory($tempDir);
+            @unlink($zipFileAbsolute);
+            abort(500, 'El archivo Excel generado está vacío.');
+        }
+
+        // Limpiar archivos temporales
+        $this->deleteDirectory($tempDir);
+        @unlink($zipFileAbsolute);
+
+        return $content;
+    }
+
+    /**
+     * Convertir número de columna a letra (1 = A, 2 = B, etc.)
+     */
+    private function numberToColumn($number)
+    {
+        $column = '';
+        while ($number > 0) {
+            $remainder = ($number - 1) % 26;
+            $column = chr(65 + $remainder) . $column;
+            $number = intval(($number - $remainder) / 26);
+        }
+        return $column;
+    }
+
+    /**
+     * Eliminar directorio recursivamente
+     */
+    private function deleteDirectory($dir)
+    {
+        if (!file_exists($dir)) {
+            return true;
+        }
+        if (!is_dir($dir)) {
+            return unlink($dir);
+        }
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+            if (!$this->deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+                return false;
+            }
+        }
+        return rmdir($dir);
     }
 }
