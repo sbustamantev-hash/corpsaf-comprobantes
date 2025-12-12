@@ -126,14 +126,14 @@
                                name="fecha" 
                                required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fecha') border-red-500 @enderror"
-                               value="{{ old('fecha', $comprobante->fecha) }}">
+                               value="{{ old('fecha', $comprobante->fecha ? $comprobante->fecha->format('Y-m-d') : '') }}">
                         @error('fecha')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Monto (S/.) <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Monto <span class="text-red-500">*</span></label>
                         <input type="number" 
                                name="monto" 
                                step="0.01"
@@ -146,13 +146,26 @@
                     </div>
                 </div>
 
+                {{-- Moneda --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Moneda <span class="text-red-500">*</span></label>
+                    <select name="moneda" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('moneda') border-red-500 @enderror">
+                        <option value="soles" {{ old('moneda', $comprobante->moneda ?? 'soles') == 'soles' ? 'selected' : '' }}>Soles (S/.)</option>
+                        <option value="dolares" {{ old('moneda', $comprobante->moneda ?? 'soles') == 'dolares' ? 'selected' : '' }}>Dólares ($)</option>
+                    </select>
+                    @error('moneda')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 {{-- Detalle --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Detalle <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Detalle / Observaciones (opcional)</label>
                     <textarea name="detalle" 
                               rows="3"
-                              required
-                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('detalle') border-red-500 @enderror">{{ old('detalle', $comprobante->detalle) }}</textarea>
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('detalle') border-red-500 @enderror"
+                              placeholder="Observaciones o comentarios adicionales...">{{ old('detalle', $comprobante->detalle) }}</textarea>
                     @error('detalle')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror

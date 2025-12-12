@@ -148,7 +148,9 @@ class ComprobanteController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('comprobantes.create', compact('anticipo', 'tiposComprobante', 'conceptos'));
+        $rmv = \App\Models\Configuracion::obtener('rmv', 1130);
+
+        return view('comprobantes.create', compact('anticipo', 'tiposComprobante', 'conceptos', 'rmv'));
     }
 
     // GUARDAR EN BD
@@ -161,8 +163,9 @@ class ComprobanteController extends Controller
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
+            'moneda' => 'required|in:soles,dolares',
             'fecha' => 'required|date',
-            'detalle' => 'required|string',
+            'detalle' => 'nullable|string',
             'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:40960',
             'anticipo_id' => 'nullable|exists:anticipos,id'
         ];
@@ -173,12 +176,43 @@ class ComprobanteController extends Controller
             $rules['concepto_otro'] = 'required|string|max:255';
         }
 
+        // Obtener RMV para validación
+        $rmv = \App\Models\Configuracion::obtener('rmv', 1130);
+
+        // Validación específica para Planilla de Movilidad
+        $tipoComprobante = \App\Models\TipoComprobante::where('codigo', $request->tipo)->first();
+        if ($tipoComprobante && stripos($tipoComprobante->descripcion, 'Planilla de Movilidad') !== false) {
+            $rules['moneda'] = 'required|in:soles';
+            // 4% del RMV
+            $maxMonto = $rmv * 0.04;
+            if ($request->monto > $maxMonto) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['monto' => 'El monto máximo para Planilla de Movilidad es del 4% del RMV (S/ ' . number_format($maxMonto, 2) . ').']);
+            }
+        }
+
         $validated = $request->validate($rules);
 
-        $archivoPath = null;
-
         if ($request->hasFile('archivo')) {
-            $archivoPath = $request->file('archivo')->store('comprobantes', ['disk' => 'public']);
+            $file = $request->file('archivo');
+
+            if (!$file->isValid()) {
+                return back()->withInput()->withErrors(['archivo' => 'El archivo subido no es válido (Error: ' . $file->getError() . ')']);
+            }
+
+            // Generar nombre único para evitar problemas con nombres vacíos
+            $extension = $file->getClientOriginalExtension() ?: 'ext';
+            $filename = uniqid('comp_', true) . '.' . $extension;
+
+            // Usar storeAs para asegurar que el nombre no esté vacío
+            $archivoPath = $file->storeAs('comprobantes', $filename, 'public');
+
+            if (!$archivoPath) {
+                return back()->withInput()->withErrors(['archivo' => 'Error al guardar el archivo en el disco.']);
+            }
+        } else {
+            return back()->withInput()->withErrors(['archivo' => 'El archivo es obligatorio y debe ser válido.']);
         }
 
         // Asignar al usuario autenticado
@@ -197,10 +231,25 @@ class ComprobanteController extends Controller
             if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
                 abort(403, 'No puedes agregar comprobantes a un anticipo aprobado o rechazado.');
             }
-        }
 
-        $serie = str_pad(strtoupper($validated['serie']), 4, '0', STR_PAD_LEFT);
-        $numero = str_pad($validated['numero'], 10, '0', STR_PAD_LEFT);
+            // Validar que Serie+Número sean únicos dentro del anticipo
+            $serie = str_pad(strtoupper($validated['serie']), 4, '0', STR_PAD_LEFT);
+            $numero = str_pad($validated['numero'], 10, '0', STR_PAD_LEFT);
+
+            $existeComprobante = Comprobante::where('anticipo_id', $anticipo->id)
+                ->where('serie', $serie)
+                ->where('numero', $numero)
+                ->exists();
+
+            if ($existeComprobante) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['serie' => 'Ya existe un comprobante con esta Serie y Número en esta rendición.']);
+            }
+        } else {
+            $serie = str_pad(strtoupper($validated['serie']), 4, '0', STR_PAD_LEFT);
+            $numero = str_pad($validated['numero'], 10, '0', STR_PAD_LEFT);
+        }
 
         $comprobante = Comprobante::create([
             'user_id' => $user->id,
@@ -212,6 +261,7 @@ class ComprobanteController extends Controller
             'numero' => $numero,
             'ruc_empresa' => $validated['ruc_empresa'],
             'monto' => $validated['monto'],
+            'moneda' => $validated['moneda'],
             'fecha' => $validated['fecha'],
             'detalle' => $validated['detalle'] ?? null,
             'archivo' => $archivoPath,
@@ -273,6 +323,11 @@ class ComprobanteController extends Controller
             abort(403, 'No tienes permisos para editar este comprobante.');
         }
 
+        // No permitir edición si el comprobante está aprobado o rechazado
+        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
+            abort(403, 'No puedes editar un comprobante que ha sido aprobado o rechazado.');
+        }
+
         // No permitir edición si el anticipo asociado está aprobado o rechazado
         if ($comprobante->anticipo_id) {
             $anticipo = $comprobante->anticipo;
@@ -289,7 +344,9 @@ class ComprobanteController extends Controller
             ->orderBy('codigo')
             ->get();
 
-        return view('comprobantes.edit', compact('comprobante', 'conceptos', 'tiposComprobante'));
+        $rmv = \App\Models\Configuracion::obtener('rmv', 1130);
+
+        return view('comprobantes.edit', compact('comprobante', 'conceptos', 'tiposComprobante', 'rmv'));
     }
 
     // ACTUALIZAR BD
@@ -302,8 +359,9 @@ class ComprobanteController extends Controller
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
+            'moneda' => 'required|in:soles,dolares',
             'fecha' => 'required|date',
-            'detalle' => 'required|string',
+            'detalle' => 'nullable|string',
             'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'
         ];
 
@@ -311,6 +369,22 @@ class ComprobanteController extends Controller
         $concepto = \App\Models\Concepto::find($request->concepto);
         if ($concepto && strtoupper($concepto->nombre) === 'OTROS') {
             $rules['concepto_otro'] = 'required|string|max:255';
+        }
+
+        // Obtener RMV para validación
+        $rmv = \App\Models\Configuracion::obtener('rmv', 1130);
+
+        // Validación específica para Planilla de Movilidad
+        $tipoComprobante = \App\Models\TipoComprobante::where('codigo', $request->tipo)->first();
+        if ($tipoComprobante && stripos($tipoComprobante->descripcion, 'Planilla de Movilidad') !== false) {
+            $rules['moneda'] = 'required|in:soles';
+            // 4% del RMV
+            $maxMonto = $rmv * 0.04;
+            if ($request->monto > $maxMonto) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['monto' => 'El monto máximo para Planilla de Movilidad es del 4% del RMV (S/ ' . number_format($maxMonto, 2) . ').']);
+            }
         }
 
         $request->validate($rules);
@@ -324,12 +398,36 @@ class ComprobanteController extends Controller
             abort(403, 'No tienes permisos para actualizar este comprobante.');
         }
 
+        // No permitir edición si el comprobante está aprobado o rechazado
+        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
+            abort(403, 'No puedes modificar un comprobante que ha sido aprobado o rechazado.');
+        }
+
         // No permitir edición si el anticipo asociado está aprobado o rechazado
         if ($comprobante->anticipo_id) {
             $anticipo = $comprobante->anticipo;
             if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
                 abort(403, 'No puedes modificar comprobantes de un anticipo aprobado o rechazado.');
             }
+
+            // Validar que Serie+Número sean únicos dentro del anticipo (excluyendo el comprobante actual)
+            $serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
+            $numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
+
+            $existeComprobante = Comprobante::where('anticipo_id', $anticipo->id)
+                ->where('serie', $serie)
+                ->where('numero', $numero)
+                ->where('id', '!=', $comprobante->id)
+                ->exists();
+
+            if ($existeComprobante) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['serie' => 'Ya existe un comprobante con esta Serie y Número en esta rendición.']);
+            }
+        } else {
+            $serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
+            $numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
         }
 
         if ($request->hasFile('archivo')) {
@@ -337,7 +435,7 @@ class ComprobanteController extends Controller
             if ($comprobante->archivo) {
                 Storage::disk('public')->delete($comprobante->archivo);
             }
-            $archivoPath = $request->file('archivo')->store('comprobantes', ['disk' => 'public']);
+            $archivoPath = $request->file('archivo')->store('comprobantes', 'public');
             $comprobante->archivo = $archivoPath;
         }
 
@@ -347,10 +445,11 @@ class ComprobanteController extends Controller
         $comprobante->tipo = $request->tipo;
         $comprobante->concepto_id = $request->concepto;
         $comprobante->concepto_otro = strtoupper($conceptoModel->nombre) === 'OTROS' ? $request->concepto_otro : null;
-        $comprobante->serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
-        $comprobante->numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
+        $comprobante->serie = $serie;
+        $comprobante->numero = $numero;
         $comprobante->ruc_empresa = $request->ruc_empresa;
         $comprobante->monto = $request->monto;
+        $comprobante->moneda = $request->moneda;
         $comprobante->fecha = $request->fecha;
         $comprobante->detalle = $request->detalle;
 
@@ -379,6 +478,16 @@ class ComprobanteController extends Controller
         // Si es operador, solo puede eliminar sus propios comprobantes
         if (!$user->isAdmin() && $comprobante->user_id !== $user->id) {
             abort(403, 'No tienes permisos para eliminar este comprobante.');
+        }
+
+        // No permitir eliminar si el comprobante está aprobado o rechazado
+        if (in_array($comprobante->estado, ['aprobado', 'rechazado'])) {
+            abort(403, 'No puedes eliminar un comprobante que ha sido aprobado o rechazado.');
+        }
+
+        // Si es operador/usuario, solo permitir si está en "pendiente"
+        if (!$user->isAdmin() && !$user->isAreaAdmin() && $comprobante->estado !== 'pendiente') {
+            abort(403, 'Solo puedes eliminar comprobantes que están pendientes.');
         }
 
         // Verificar si el anticipo asociado está bloqueado
@@ -471,7 +580,7 @@ class ComprobanteController extends Controller
 
         $archivoPath = null;
         if ($request->hasFile('archivo')) {
-            $archivoPath = $request->file('archivo')->store('observaciones', ['disk' => 'public']);
+            $archivoPath = $request->file('archivo')->store('observaciones', 'public');
         }
 
         Observacion::create([
@@ -593,14 +702,14 @@ class ComprobanteController extends Controller
                 $query->where('area_id', $user->area_id);
             })
             ->get();
-        
+
         Log::info('Export Excel - Total comprobantes en la empresa: ' . $todosComprobantes->count());
         Log::info('Export Excel - Area ID: ' . $user->area_id);
-        
+
         // Contar por estado
         $porEstado = $todosComprobantes->groupBy('estado')->map->count();
         Log::info('Export Excel - Comprobantes por estado: ' . json_encode($porEstado->toArray()));
-        
+
         // Obtener todos los comprobantes aprobados de la empresa
         $comprobantes = Comprobante::with(['user', 'concepto'])
             ->whereHas('user', function ($query) use ($user) {
@@ -613,7 +722,7 @@ class ComprobanteController extends Controller
 
         // Log para depuración
         Log::info('Export Excel - Comprobantes aprobados encontrados: ' . $comprobantes->count());
-        
+
         // Solo exportar comprobantes aprobados (no exportar todos si no hay aprobados)
 
         // Si no hay comprobantes, generar Excel vacío con solo encabezados
@@ -655,27 +764,27 @@ class ComprobanteController extends Controller
     {
         // Crear directorio temporal
         $tempDir = sys_get_temp_dir() . '/excel_' . uniqid();
-        
+
         if (!mkdir($tempDir, 0777, true)) {
             Log::error('No se pudo crear el directorio temporal: ' . $tempDir);
             throw new \Exception('No se pudo crear el directorio temporal');
         }
-        
+
         if (!mkdir($tempDir . '/xl', 0777, true)) {
             Log::error('No se pudo crear el directorio xl');
             throw new \Exception('No se pudo crear el directorio xl');
         }
-        
+
         if (!mkdir($tempDir . '/xl/worksheets', 0777, true)) {
             Log::error('No se pudo crear el directorio worksheets');
             throw new \Exception('No se pudo crear el directorio worksheets');
         }
-        
+
         if (!mkdir($tempDir . '/_rels', 0777, true)) {
             Log::error('No se pudo crear el directorio _rels');
             throw new \Exception('No se pudo crear el directorio _rels');
         }
-        
+
         if (!mkdir($tempDir . '/xl/_rels', 0777, true)) {
             Log::error('No se pudo crear el directorio xl/_rels');
             throw new \Exception('No se pudo crear el directorio xl/_rels');
@@ -717,7 +826,7 @@ class ComprobanteController extends Controller
         // Calcular dimensiones (mínimo 1 fila para los encabezados)
         $maxRow = max(1, $comprobantes->count() + 1); // +1 para los encabezados
         $maxCol = 7; // 7 columnas
-        
+
         // xl/worksheets/sheet1.xml
         $sheetContent = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -728,7 +837,7 @@ class ComprobanteController extends Controller
         </sheetView>
     </sheetViews>
     <sheetData>';
-        
+
         // Encabezados
         $rowNum = 1;
         $headers = ['Nº', 'Fecha', 'Promovedor (RUC)', 'Concepto', 'Monto', 'Serie', 'Número de Comprobante'];
@@ -743,18 +852,18 @@ class ComprobanteController extends Controller
         $numero = 1;
         $totalRows = 0;
         Log::info('Export Excel - Iniciando procesamiento de ' . $comprobantes->count() . ' comprobantes');
-        
+
         foreach ($comprobantes as $comprobante) {
             $rowNum++;
             $totalRows++;
-            
+
             try {
                 Log::debug('Export Excel - Procesando comprobante ID: ' . $comprobante->id);
-                $fecha = $comprobante->fecha instanceof Carbon 
-                    ? $comprobante->fecha 
+                $fecha = $comprobante->fecha instanceof Carbon
+                    ? $comprobante->fecha
                     : Carbon::parse($comprobante->fecha);
-                
-                $concepto = $comprobante->concepto 
+
+                $concepto = $comprobante->concepto
                     ? ($comprobante->concepto->descripcion ?? 'N/A')
                     : ($comprobante->concepto_otro ?? 'N/A');
 
@@ -773,9 +882,9 @@ class ComprobanteController extends Controller
                     $colLetter = $this->numberToColumn($col + 1);
                     // Columna 0 (Nº) y columna 4 (Monto) son numéricas
                     if (($col == 0 || $col == 4) && is_numeric($value)) {
-                        $sheetContent .= '<c r="' . $colLetter . $rowNum . '" t="n"><v>' . htmlspecialchars((string)$value, ENT_XML1) . '</v></c>';
+                        $sheetContent .= '<c r="' . $colLetter . $rowNum . '" t="n"><v>' . htmlspecialchars((string) $value, ENT_XML1) . '</v></c>';
                     } else {
-                        $sheetContent .= '<c r="' . $colLetter . $rowNum . '" t="inlineStr"><is><t>' . htmlspecialchars((string)$value, ENT_XML1) . '</t></is></c>';
+                        $sheetContent .= '<c r="' . $colLetter . $rowNum . '" t="inlineStr"><is><t>' . htmlspecialchars((string) $value, ENT_XML1) . '</t></is></c>';
                     }
                 }
                 $sheetContent .= '</row>';
@@ -785,10 +894,10 @@ class ComprobanteController extends Controller
                 continue;
             }
         }
-        
+
         // Log final
         Log::info('Export Excel - Total filas procesadas: ' . $totalRows);
-        
+
         // Si no se procesó ningún comprobante, al menos tener los encabezados
         if ($totalRows == 0) {
             Log::warning('Export Excel - No se procesaron comprobantes en la exportación');
@@ -796,7 +905,7 @@ class ComprobanteController extends Controller
 
         $sheetContent .= '</sheetData>
 </worksheet>';
-        
+
         // Verificar que se escribió correctamente
         $written = file_put_contents($tempDir . '/xl/worksheets/sheet1.xml', $sheetContent);
         if ($written === false) {
@@ -812,7 +921,7 @@ class ComprobanteController extends Controller
             'xl/_rels/workbook.xml.rels',
             'xl/worksheets/sheet1.xml'
         ];
-        
+
         foreach ($requiredFiles as $file) {
             if (!file_exists($tempDir . '/' . $file)) {
                 $this->deleteDirectory($tempDir);
@@ -823,22 +932,22 @@ class ComprobanteController extends Controller
         // Crear archivo ZIP usando comando del sistema
         $zipFile = sys_get_temp_dir() . '/excel_' . uniqid() . '.zip';
         $oldCwd = getcwd();
-        
+
         try {
             chdir($tempDir);
-            
+
             // Usar ruta absoluta para el zip
             $zipFileAbsolute = realpath(sys_get_temp_dir()) . '/' . basename($zipFile);
-            
+
             // Verificar que el comando zip existe
             exec("which zip 2>&1", $whichOutput, $whichCode);
             if ($whichCode !== 0) {
                 throw new \Exception('El comando zip no está disponible en el sistema');
             }
-            
+
             // Crear el ZIP con todos los archivos
             exec("zip -r " . escapeshellarg($zipFileAbsolute) . " . -q 2>&1", $output, $returnCode);
-            
+
             chdir($oldCwd);
 
             if ($returnCode !== 0) {
@@ -864,7 +973,7 @@ class ComprobanteController extends Controller
 
         // Leer contenido del ZIP
         $content = file_get_contents($zipFileAbsolute);
-        
+
         if (empty($content)) {
             $this->deleteDirectory($tempDir);
             @unlink($zipFileAbsolute);

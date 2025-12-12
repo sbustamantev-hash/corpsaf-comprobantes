@@ -60,6 +60,7 @@ class AnticipoController extends Controller
         $rules = [
             'tipo' => 'required|in:anticipo,reembolso',
             'fecha' => 'required|date',
+            'moneda' => 'required|in:soles,dolares,euros',
             'descripcion' => 'required|string',
         ];
 
@@ -80,6 +81,7 @@ class AnticipoController extends Controller
             'creado_por' => $admin->id,
             'tipo' => $request->tipo,
             'fecha' => $request->fecha,
+            'moneda' => $request->moneda,
             'banco_id' => $request->banco_id,
             'TipoRendicion' => $request->TipoRendicion,
             'importe' => $request->tipo === 'reembolso' ? null : $request->importe,
@@ -122,7 +124,7 @@ class AnticipoController extends Controller
             'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:40960',
         ]);
 
-        $archivoPath = $request->file('archivo')->store('comprobantes', ['disk' => 'public']);
+        $archivoPath = $request->file('archivo')->store('comprobantes', 'public');
 
         $comprobante = $anticipo->comprobantes()->create([
             'user_id' => $anticipo->user_id,
@@ -172,6 +174,87 @@ class AnticipoController extends Controller
         $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
 
         return view('anticipos.show', compact('anticipo', 'totalComprobado', 'totalRechazado', 'restante', 'porcentaje'));
+    }
+
+    /**
+     * Formulario de edición
+     */
+    public function edit($id)
+    {
+        $user = Auth::user();
+        $anticipo = Anticipo::with(['area', 'usuario'])->findOrFail($id);
+
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores pueden editar anticipos.');
+        }
+
+        if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes editar anticipos de tu Empresa.');
+        }
+
+        if (!in_array($anticipo->estado, ['pendiente', 'en_observacion'])) {
+            abort(403, 'Solo puedes editar anticipos en estado pendiente o en observación.');
+        }
+
+        $bancos = \App\Models\Banco::orderBy('descripcion')->get();
+        $tipos_rendicion = \App\Models\TipoRendicion::orderBy('descripcion')->get();
+
+        return view('anticipos.edit', compact('anticipo', 'bancos', 'tipos_rendicion'));
+    }
+
+    /**
+     * Actualizar anticipo
+     */
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+        $anticipo = Anticipo::findOrFail($id);
+
+        if (!$user->isAdmin() && !$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores pueden actualizar anticipos.');
+        }
+
+        if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes actualizar anticipos de tu Empresa.');
+        }
+
+        if (!in_array($anticipo->estado, ['pendiente', 'en_observacion'])) {
+            abort(403, 'Solo puedes actualizar anticipos en estado pendiente o en observación.');
+        }
+
+        $rules = [
+            'tipo' => 'required|in:anticipo,reembolso',
+            'fecha' => 'required|date',
+            'moneda' => 'required|in:soles,dolares,euros',
+            'descripcion' => 'required|string',
+        ];
+
+        if ($request->tipo === 'anticipo') {
+            $rules['banco_id'] = 'required|exists:bancos,id';
+            $rules['tipo_rendicion_id'] = 'required|exists:tipos_rendicion,id';
+            $rules['importe'] = 'required|numeric|min:0';
+        } else {
+            $rules['importe'] = 'nullable|numeric|min:0';
+            $rules['banco_id'] = 'nullable|exists:bancos,id';
+            $rules['tipo_rendicion_id'] = 'nullable|exists:tipos_rendicion,id';
+        }
+
+        $validated = $request->validate($rules);
+
+        $updateData = [
+            'tipo' => $validated['tipo'],
+            'fecha' => $validated['fecha'],
+            'moneda' => $validated['moneda'],
+            'descripcion' => $validated['descripcion'],
+            'importe' => $validated['tipo'] === 'reembolso' ? null : $validated['importe'],
+            'banco_id' => $validated['tipo'] === 'reembolso' ? null : ($validated['banco_id'] ?? null),
+            'tipo_rendicion_id' => $validated['tipo'] === 'reembolso' ? null : ($validated['tipo_rendicion_id'] ?? null),
+        ];
+
+        $anticipo->update($updateData);
+
+        return redirect()->route('anticipos.show', $anticipo->id)
+            ->with('success', 'Anticipo actualizado correctamente.');
     }
 
     /**
@@ -481,6 +564,7 @@ class AnticipoController extends Controller
         if ($anticipo->banco) {
             $html .= '<div class="info-row"><span class="info-label">BANCO:</span><span class="info-value">' . $anticipo->banco->descripcion . '</span></div>';
         }
+        $html .= '<div class="info-row"><span class="info-label">MONEDA:</span><span class="info-value">' . ucfirst($anticipo->moneda) . '</span></div>';
         $html .= '</div>';
 
         // Tabla de asignación
@@ -591,6 +675,41 @@ class AnticipoController extends Controller
             abort(404, 'Archivo no encontrado.');
         }
 
-        return Storage::disk('public')->download($anticipo->archivo);
+        $path = Storage::disk('public')->path($anticipo->archivo);
+        return response()->download($path);
+    }
+
+    /**
+     * Eliminar anticipo
+     */
+    public function destroy($id)
+    {
+        $user = Auth::user();
+        $anticipo = Anticipo::findOrFail($id);
+
+        if (!$user->isAreaAdmin()) {
+            abort(403, 'Solo los administradores de empresa pueden eliminar anticipos.');
+        }
+
+        if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
+            abort(403, 'Solo puedes eliminar anticipos de tu Empresa.');
+        }
+
+        if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+            return redirect()->back()->with('error', 'No se puede eliminar un anticipo aprobado o rechazado.');
+        }
+
+        // Eliminar comprobantes asociados y sus archivos
+        foreach ($anticipo->comprobantes as $comprobante) {
+            if ($comprobante->archivo) {
+                Storage::disk('public')->delete($comprobante->archivo);
+            }
+            $comprobante->delete();
+        }
+
+        $anticipo->delete();
+
+        return redirect()->route('comprobantes.index')
+            ->with('success', 'Anticipo eliminado correctamente.');
     }
 }

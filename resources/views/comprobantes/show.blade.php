@@ -18,6 +18,22 @@
                 </div>
             @endif
         @endif
+
+        @if(!Auth::user()->isAdmin() && !Auth::user()->isAreaAdmin() && $comprobante->user_id === Auth::id() && $comprobante->estado === 'pendiente')
+            @if(!$comprobante->anticipo_id || !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado']))
+                <div class="flex items-center space-x-3">
+                    <form action="{{ route('comprobantes.destroy', $comprobante->id) }}" method="POST" class="inline"
+                        onsubmit="return confirm('¿Estás seguro de que deseas eliminar este comprobante?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium">
+                            <i class="fas fa-trash mr-2"></i>Eliminar
+                        </button>
+                    </form>
+                </div>
+            @endif
+        @endif
     @endauth
 @endsection
 
@@ -96,11 +112,24 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Fecha del comprobante</p>
-                        <p class="text-base font-medium text-gray-900">{{ $comprobante->fecha ? $comprobante->fecha->format('d/m/Y') : 'N/A' }}</p>
+                        <p class="text-base font-medium text-gray-900">
+                            {{ $comprobante->fecha ? $comprobante->fecha->format('d/m/Y') : 'N/A' }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Monto</p>
-                        <p class="text-lg font-bold text-gray-900">S/ {{ number_format($comprobante->monto, 2) }}</p>
+                        <p class="text-lg font-bold text-gray-900">
+                            @if(($comprobante->moneda ?? 'soles') === 'dolares')
+                                $ {{ number_format($comprobante->monto, 2) }}
+                            @else
+                                S/ {{ number_format($comprobante->monto, 2) }}
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Moneda</p>
+                        <p class="text-base font-medium text-gray-900">
+                            {{ ($comprobante->moneda ?? 'soles') === 'dolares' ? 'Dólares ($)' : 'Soles (S/.)' }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -136,14 +165,6 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Mensaje del usuario -->
-            @if($comprobante->detalle)
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Mensaje del Usuario</h2>
-                    <p class="text-gray-700 leading-relaxed">{{ $comprobante->detalle }}</p>
-                </div>
-            @endif
 
             <!-- Archivos adjuntos -->
             @if($comprobante->archivo)
@@ -190,10 +211,10 @@
                             <div class="flex items-start space-x-3">
                                 <div class="flex-shrink-0">
                                     <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm
-                                                @if($observacion->tipo === 'aprobacion') bg-green-600
-                                                @elseif($observacion->tipo === 'rechazo') bg-red-600
-                                                @else bg-blue-600
-                                                @endif">
+                                                            @if($observacion->tipo === 'aprobacion') bg-green-600
+                                                            @elseif($observacion->tipo === 'rechazo') bg-red-600
+                                                            @else bg-blue-600
+                                                            @endif">
                                         @if($observacion->user->isAdmin())
                                             <i class="fas fa-shield-alt text-xs"></i>
                                         @else

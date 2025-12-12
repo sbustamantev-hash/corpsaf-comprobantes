@@ -29,20 +29,21 @@
 
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+        <aside id="sidebar"
+            class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
             <!-- Logo -->
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-center space-x-3">
                     @if(auth()->user()->isAdmin())
-                        <button type="button"
-                                onclick="toggleLogoModal(true)"
-                                class="relative w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden group focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                        <button type="button" onclick="toggleLogoModal(true)"
+                            class="relative w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden group focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
                             @if($logoImage)
                                 <img src="{{ $logoImage }}" alt="Logo" class="w-full h-full object-cover">
                             @else
                                 <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
                             @endif
-                            <div class="absolute inset-0 rounded-full bg-black/60 hidden group-hover:flex flex-col items-center justify-center text-white text-[10px] font-semibold transition pointer-events-none">
+                            <div
+                                class="absolute inset-0 rounded-full bg-black/60 hidden group-hover:flex flex-col items-center justify-center text-white text-[10px] font-semibold transition pointer-events-none">
                                 <i class="fas fa-pen mb-0.5 text-xs"></i>
                                 <span>Editar</span>
                             </div>
@@ -69,49 +70,50 @@
 
             <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <a href="{{ route('comprobantes.index') }}"
-                    onclick="closeSidebarOnMobile()"
+                <a href="{{ route('comprobantes.index') }}" onclick="closeSidebarOnMobile()"
                     class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('comprobantes.index') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <i class="fas fa-th-large w-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
 
                 @if(auth()->user()->isAdmin() || auth()->user()->isAreaAdmin())
-                <div class="pt-2 mt-2 border-t border-gray-200">
-                    <p class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Administración</p>
-                    @if(auth()->user()->isAdmin())
-                    <a href="{{ route('areas.index') }}" 
-                       onclick="closeSidebarOnMobile()"
-                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('areas.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="fas fa-building w-5"></i>
-                        <span class="font-medium">Empresas</span>
-                    </a>
-                    <a href="{{ route('tipos-comprobante.index') }}" 
-                       onclick="closeSidebarOnMobile()"
-                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('tipos-comprobante.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="fas fa-file-invoice w-5"></i>
-                        <span class="font-medium">Tipos de Comprobante</span>
-                    </a>
-                    <a href="{{ route('bancos.index') }}" 
-                       onclick="closeSidebarOnMobile()"
-                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('bancos.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="fas fa-university w-5"></i>
-                        <span class="font-medium">Bancos</span>
-                    </a>
-                    <a href="{{ route('conceptos.index') }}" 
-                       onclick="closeSidebarOnMobile()"
-                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('conceptos.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="fas fa-tags w-5"></i>
-                        <span class="font-medium">Conceptos</span>
-                    </a>
-                    @endif
-                    <a href="{{ route('users.index') }}" 
-                       onclick="closeSidebarOnMobile()"
-                       class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="fas fa-users w-5"></i>
-                        <span class="font-medium">Usuarios</span>
-                    </a>
-                </div>
+                    <div class="pt-2 mt-2 border-t border-gray-200">
+                        <p class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Administración</p>
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('areas.index') }}" onclick="closeSidebarOnMobile()"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('areas.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-building w-5"></i>
+                                <span class="font-medium">Empresas</span>
+                            </a>
+                            <a href="{{ route('tipos-comprobante.index') }}" onclick="closeSidebarOnMobile()"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('tipos-comprobante.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-file-invoice w-5"></i>
+                                <span class="font-medium">Tipos de Comprobante</span>
+                            </a>
+                            <a href="{{ route('bancos.index') }}" onclick="closeSidebarOnMobile()"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('bancos.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-university w-5"></i>
+                                <span class="font-medium">Bancos</span>
+                            </a>
+                            <a href="{{ route('conceptos.index') }}" onclick="closeSidebarOnMobile()"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('conceptos.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-tags w-5"></i>
+                                <span class="font-medium">Conceptos</span>
+                            </a>
+                        @endif
+                        <a href="{{ route('users.index') }}" onclick="closeSidebarOnMobile()"
+                            class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                            <i class="fas fa-users w-5"></i>
+                            <span class="font-medium">Usuarios</span>
+                        </a>
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('configuraciones.index') }}" onclick="closeSidebarOnMobile()"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('configuraciones.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <i class="fas fa-money-bill-wave w-5"></i>
+                                <span class="font-medium">RMV</span>
+                            </a>
+                        @endif
+                    </div>
                 @endif
             </nav>
 
@@ -172,12 +174,15 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4 flex-1 min-w-0">
                         <!-- Hamburger Menu Button -->
-                        <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2">
+                        <button onclick="toggleSidebar()"
+                            class="lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
                         <div class="flex-1 min-w-0">
-                            <h2 class="text-xl lg:text-2xl font-bold text-gray-900 truncate">@yield('title', 'Dashboard')</h2>
-                            <p class="text-xs lg:text-sm text-gray-500 mt-1 truncate">@yield('subtitle', 'Gestiona tus comprobantes')</p>
+                            <h2 class="text-xl lg:text-2xl font-bold text-gray-900 truncate">
+                                @yield('title', 'Dashboard')</h2>
+                            <p class="text-xs lg:text-sm text-gray-500 mt-1 truncate">
+                                @yield('subtitle', 'Gestiona tus comprobantes')</p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
@@ -219,48 +224,46 @@
             </main>
         </div>
     </div>
-    
+
     @if(auth()->user()->isAdmin())
-    <!-- Modal para actualizar logo -->
-    <div id="logoModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center px-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Actualizar logo</h3>
-                <button type="button" class="text-gray-400 hover:text-gray-600" onclick="toggleLogoModal(false)">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
-            </div>
-            <p class="text-sm text-gray-500 mb-4">Selecciona una nueva imagen para el logo de la empresa. Recomendado: fondo transparente, formato PNG o SVG.</p>
-            <form action="{{ route('configuraciones.branding.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
-                @csrf
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la empresa</label>
-                    <input type="text"
-                           name="nombre_empresa"
-                           value="{{ $sidebarCompanyName }}"
-                           required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+        <!-- Modal para actualizar logo -->
+        <div id="logoModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center px-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Actualizar logo</h3>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" onclick="toggleLogoModal(false)">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
-                    <input type="file" name="logo" accept="image/*"
-                           class="w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Déjalo vacío si solo quieres actualizar el nombre.</p>
-                </div>
-                <div class="flex items-center justify-end space-x-3">
-                    <button type="button"
-                            class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                <p class="text-sm text-gray-500 mb-4">Selecciona una nueva imagen para el logo de la empresa. Recomendado:
+                    fondo transparente, formato PNG o SVG.</p>
+                <form action="{{ route('configuraciones.branding.update') }}" method="POST" enctype="multipart/form-data"
+                    class="space-y-5">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la empresa</label>
+                        <input type="text" name="nombre_empresa" value="{{ $sidebarCompanyName }}" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                        <input type="file" name="logo" accept="image/*"
+                            class="w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">Déjalo vacío si solo quieres actualizar el nombre.</p>
+                    </div>
+                    <div class="flex items-center justify-end space-x-3">
+                        <button type="button" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
                             onclick="toggleLogoModal(false)">
-                        Cancelar
-                    </button>
-                    <button type="submit"
+                            Cancelar
+                        </button>
+                        <button type="submit"
                             class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
-                        Guardar logo
-                    </button>
-                </div>
-            </form>
+                            Guardar logo
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
     @endif
 </body>
 
@@ -268,11 +271,11 @@
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
-        
+
         if (!sidebar || !overlay) return;
-        
+
         const isOpen = !sidebar.classList.contains('-translate-x-full');
-        
+
         if (isOpen) {
             sidebar.classList.add('-translate-x-full');
             overlay.classList.add('hidden');
@@ -293,14 +296,14 @@
     document.addEventListener('click', (event) => {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
-        
+
         if (!sidebar || !overlay) return;
-        
+
         // Only handle on mobile (lg breakpoint)
         if (window.innerWidth < 1024) {
             const isClickInsideSidebar = sidebar.contains(event.target);
             const isClickOnHamburger = event.target.closest('[onclick="toggleSidebar()"]');
-            
+
             if (!isClickInsideSidebar && !isClickOnHamburger && !sidebar.classList.contains('-translate-x-full')) {
                 toggleSidebar();
             }
@@ -311,9 +314,9 @@
     window.addEventListener('resize', () => {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
-        
+
         if (!sidebar || !overlay) return;
-        
+
         // On desktop, always show sidebar and hide overlay
         if (window.innerWidth >= 1024) {
             sidebar.classList.remove('-translate-x-full');
@@ -326,23 +329,23 @@
     });
 
     @if(auth()->user()->isAdmin())
-    function toggleLogoModal(show) {
-        const modal = document.getElementById('logoModal');
-        if (!modal) return;
-        if (show) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        } else {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        function toggleLogoModal(show) {
+            const modal = document.getElementById('logoModal');
+            if (!modal) return;
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         }
-    }
 
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            toggleLogoModal(false);
-        }
-    });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                toggleLogoModal(false);
+            }
+        });
     @endif
 </script>
 

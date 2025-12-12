@@ -14,15 +14,23 @@ class ConceptoSeeder extends Seeder
     {
         $conceptos = [
             [
-                'nombre' => 'ALIMENTACIÓN',
+                'nombre' => 'ALIMENTACION',
                 'activo' => true,
             ],
             [
-                'nombre' => 'COMBUSTIBLE',
+                'nombre' => 'HOSPEDAJE',
                 'activo' => true,
             ],
             [
-                'nombre' => 'PEAJE',
+                'nombre' => 'TRANSPORTE',
+                'activo' => true,
+            ],
+            [
+                'nombre' => 'COMBUSTIBLES',
+                'activo' => true,
+            ],
+            [
+                'nombre' => 'PEAJES',
                 'activo' => true,
             ],
             [

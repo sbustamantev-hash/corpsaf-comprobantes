@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Nuevo Anticipo/Reembolso')
-@section('subtitle', 'Registrar anticipo o reembolso para un colaborador')
+@section('title', 'Editar Anticipo/Reembolso')
+@section('subtitle', 'Modificar datos del anticipo/reembolso')
 
 @section('content')
     <div class="max-w-3xl mx-auto">
         <div class="mb-6">
-            <a href="{{ route('comprobantes.index') }}"
+            <a href="{{ route('anticipos.show', $anticipo->id) }}"
                 class="inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
-                <i class="fas fa-arrow-left mr-2"></i>Volver al dashboard
+                <i class="fas fa-arrow-left mr-2"></i>Volver al detalle
             </a>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Empresa: {{ $area->nombre }}</h2>
-                    <p class="text-sm text-gray-500">Anticipo para {{ $user->name }} (DNI: {{ $user->dni ?? 'N/A' }})</p>
+                    <h2 class="text-2xl font-bold text-gray-900">Empresa: {{ $anticipo->area->nombre }}</h2>
+                    <p class="text-sm text-gray-500">Anticipo de {{ $anticipo->usuario->name }} (DNI: {{ $anticipo->usuario->dni ?? 'N/A' }})</p>
                 </div>
                 <div class="mt-4 md:mt-0 text-sm text-gray-500">
                     <p>Administrador: {{ Auth::user()->name }}</p>
@@ -34,20 +34,22 @@
                 </div>
             @endif
 
-            <form action="{{ route('areas.users.anticipos.store', [$area->id, $user->id]) }}" method="POST"
-                class="space-y-6">
+            <form action="{{ route('anticipos.update', $anticipo->id) }}" method="POST" class="space-y-6">
                 @csrf
+                @method('PUT')
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo <span class="text-red-500">*</span></label>
                         <div class="flex items-center space-x-4">
                             <label class="inline-flex items-center text-sm text-gray-700">
-                                <input type="radio" name="tipo" value="anticipo" required class="text-blue-600" {{ old('tipo', 'anticipo') === 'anticipo' ? 'checked' : '' }}>
+                                <input type="radio" name="tipo" value="anticipo" required class="text-blue-600"
+                                    {{ old('tipo', $anticipo->tipo) === 'anticipo' ? 'checked' : '' }}>
                                 <span class="ml-2">Anticipo</span>
                             </label>
                             <label class="inline-flex items-center text-sm text-gray-700">
-                                <input type="radio" name="tipo" value="reembolso" required class="text-blue-600" {{ old('tipo') === 'reembolso' ? 'checked' : '' }}>
+                                <input type="radio" name="tipo" value="reembolso" required class="text-blue-600"
+                                    {{ old('tipo', $anticipo->tipo) === 'reembolso' ? 'checked' : '' }}>
                                 <span class="ml-2">Reembolso</span>
                             </label>
                         </div>
@@ -57,9 +59,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha <span
-                                class="text-red-500">*</span></label>
-                        <input type="date" name="fecha" value="{{ old('fecha') }}" required
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha <span class="text-red-500">*</span></label>
+                        <input type="date" name="fecha" value="{{ old('fecha', $anticipo->fecha->format('Y-m-d')) }}" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fecha') border-red-500 @enderror">
                         @error('fecha')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -67,13 +68,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Moneda <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Moneda <span class="text-red-500">*</span></label>
                         <select name="moneda" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('moneda') border-red-500 @enderror">
-                            <option value="soles" {{ old('moneda') == 'soles' ? 'selected' : '' }}>Soles (S/.)</option>
-                            <option value="dolares" {{ old('moneda') == 'dolares' ? 'selected' : '' }}>Dólares ($)</option>
-                            <option value="euros" {{ old('moneda') == 'euros' ? 'selected' : '' }}>Euros (€)</option>
+                            <option value="soles" {{ old('moneda', $anticipo->moneda) == 'soles' ? 'selected' : '' }}>Soles (S/.)</option>
+                            <option value="dolares" {{ old('moneda', $anticipo->moneda) == 'dolares' ? 'selected' : '' }}>Dólares ($)</option>
+                            <option value="euros" {{ old('moneda', $anticipo->moneda) == 'euros' ? 'selected' : '' }}>Euros (€)</option>
                         </select>
                         @error('moneda')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -81,28 +81,28 @@
                     </div>
 
                     <div id="field-tipo-rendicion">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de rendición <span
-                                class="text-red-500">*</span></label>
-
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de rendición <span class="text-red-500">*</span></label>
                         <select name="tipo_rendicion_id" id="select-tipo-rendicion" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Seleccione un tipo de rendición</option>
                             @foreach ($tipos_rendicion as $tiporendicion)
-                                <option value="{{ $tiporendicion->id }}">{{ $tiporendicion->descripcion }}</option>
+                                <option value="{{ $tiporendicion->id }}" {{ old('tipo_rendicion_id', $anticipo->tipo_rendicion_id) == $tiporendicion->id ? 'selected' : '' }}>
+                                    {{ $tiporendicion->descripcion }}
+                                </option>
                             @endforeach
                         </select>
                         @error('tipo_rendicion_id')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+
                     <div id="field-banco">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Entidad financiera <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Entidad financiera <span class="text-red-500">*</span></label>
                         <select name="banco_id" id="select-banco" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('banco_id') border-red-500 @enderror">
                             <option value="">Seleccione banco</option>
                             @foreach($bancos as $banco)
-                                <option value="{{ $banco->id }}" {{ old('banco_id') == $banco->id ? 'selected' : '' }}>
+                                <option value="{{ $banco->id }}" {{ old('banco_id', $anticipo->banco_id) == $banco->id ? 'selected' : '' }}>
                                     {{ $banco->descripcion }}
                                 </option>
                             @endforeach
@@ -112,13 +112,10 @@
                         @enderror
                     </div>
 
-
-
                     <div id="field-importe">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Importe <span
-                                class="text-red-500">*</span></label>
-                        <input type="number" step="0.01" name="importe" id="input-importe" value="{{ old('importe') }}"
-                            required
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Importe  <span class="text-red-500">*</span></label>
+                        <input type="number" step="0.01" name="importe" id="input-importe"
+                            value="{{ old('importe', $anticipo->tipo === 'reembolso' ? '' : $anticipo->importe) }}" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('importe') border-red-500 @enderror">
                         @error('importe')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -127,24 +124,22 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Descripción <span
-                            class="text-red-500">*</span></label>
-                    <textarea name="descripcion" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-lg
-                                                            focus:outline-none focus:ring-2 focus:ring-blue-500 @error('descripcion') border-red-500
-                                                            @enderror">{{ old('descripcion') }}</textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descripción <span class="text-red-500">*</span></label>
+                    <textarea name="descripcion" rows="3" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('descripcion') border-red-500 @enderror">{{ old('descripcion', $anticipo->descripcion) }}</textarea>
                     @error('descripcion')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="flex items-center justify-end space-x-4">
-                    <a href="{{ route('comprobantes.index') }}"
+                    <a href="{{ route('anticipos.show', $anticipo->id) }}"
                         class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
                         Cancelar
                     </a>
                     <button type="submit" id="btn-submit"
                         class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                        <i class="fas fa-paper-plane mr-2"></i>Registrar Anticipo
+                        <i class="fas fa-save mr-2"></i>Guardar cambios
                     </button>
                 </div>
             </form>
@@ -165,7 +160,6 @@
                 const selectTipoRendicion = document.getElementById('select-tipo-rendicion');
 
                 if (tipo === 'reembolso') {
-                    // Para reembolso: ocultar banco y tipo rendición, bloquear importe
                     fieldBanco.style.display = 'none';
                     fieldTipoRendicion.style.display = 'none';
                     if (selectBanco) {
@@ -181,9 +175,8 @@
                     inputImporte.value = '';
                     inputImporte.classList.add('bg-gray-100', 'cursor-not-allowed');
                     inputImporte.classList.remove('focus:ring-2', 'focus:ring-blue-500');
-                    btnSubmit.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Registrar Reembolso';
+                    btnSubmit.innerHTML = '<i class="fas fa-save mr-2"></i>Guardar reembolso';
                 } else {
-                    // Para anticipo: mostrar todos los campos, habilitar importe
                     fieldBanco.style.display = 'block';
                     fieldTipoRendicion.style.display = 'block';
                     if (selectBanco) selectBanco.required = true;
@@ -192,14 +185,13 @@
                     inputImporte.required = true;
                     inputImporte.classList.remove('bg-gray-100', 'cursor-not-allowed');
                     inputImporte.classList.add('focus:ring-2', 'focus:ring-blue-500');
-                    btnSubmit.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Registrar Anticipo';
+                    btnSubmit.innerHTML = '<i class="fas fa-save mr-2"></i>Guardar anticipo';
                 }
             }
 
             tipoRadios.forEach(radio => radio.addEventListener('change', toggleFields));
-
-            // Ejecutar al cargar para establecer el estado inicial
             toggleFields();
         });
     </script>
 @endsection
+

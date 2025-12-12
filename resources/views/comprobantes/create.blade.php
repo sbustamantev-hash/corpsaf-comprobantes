@@ -24,7 +24,8 @@
 
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC de la Empresa <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC de la Empresa <span
+                                class="text-red-500">*</span></label>
                         <input type="text" name="ruc_empresa" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('ruc_empresa') border-red-500 @enderror"
                             value="{{ old('ruc_empresa') }}" placeholder="Ingresa el RUC de tu empresa">
@@ -36,7 +37,8 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Serie de Comprobante <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Serie de Comprobante <span
+                                    class="text-red-500">*</span></label>
                             <input type="text" name="serie" maxlength="4" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('serie') border-red-500 @enderror"
                                 value="{{ old('serie') }}" placeholder="Ej: 0846">
@@ -46,7 +48,8 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Número de comprobante <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Número de comprobante <span
+                                    class="text-red-500">*</span></label>
                             <input type="text" name="numero" maxlength="10" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('numero') border-red-500 @enderror"
                                 value="{{ old('numero') }}" placeholder="Ej: 0000000456">
@@ -58,7 +61,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de comprobante <span
+                                class="text-red-500">*</span></label>
                         <select name="tipo" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipo') border-red-500 @enderror">
                             <option value="">Selecciona un tipo</option>
@@ -74,7 +78,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Concepto <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Concepto <span
+                                class="text-red-500">*</span></label>
                         <select name="concepto" id="concepto-select" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('concepto') border-red-500 @enderror">
                             <option value="">Selecciona un concepto</option>
@@ -90,11 +95,11 @@
                     </div>
 
                     <div id="concepto-otro-field" class="hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Especificar concepto <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Especificar concepto <span
+                                class="text-red-500">*</span></label>
                         <input type="text" name="concepto_otro" id="concepto-otro-input"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('concepto_otro') border-red-500 @enderror"
-                            value="{{ old('concepto_otro') }}"
-                            placeholder="Ingresa el concepto">
+                            value="{{ old('concepto_otro') }}" placeholder="Ingresa el concepto">
                         @error('concepto_otro')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -102,7 +107,8 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Monto (S/.) <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Monto <span
+                                    class="text-red-500">*</span></label>
                             <input type="number" step="0.01" name="monto" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('monto') border-red-500 @enderror"
                                 value="{{ old('monto') }}" placeholder="0.00">
@@ -112,28 +118,46 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha <span class="text-red-500">*</span></label>
-                            <input type="date" name="fecha" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fecha') border-red-500 @enderror"
-                                value="{{ old('fecha') }}">
-                            @error('fecha')
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Moneda <span
+                                    class="text-red-500">*</span></label>
+                            <select name="moneda" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('moneda') border-red-500 @enderror">
+                                <option value="soles" {{ old('moneda', 'soles') == 'soles' ? 'selected' : '' }}>Soles (S/.)
+                                </option>
+                                <option value="dolares" {{ old('moneda') == 'dolares' ? 'selected' : '' }}>Dólares ($)
+                                </option>
+                            </select>
+                            @error('moneda')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Detalle <span class="text-red-500">*</span></label>
-                        <textarea name="detalle" rows="4" required
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha <span
+                                class="text-red-500">*</span></label>
+                        <input type="date" name="fecha" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fecha') border-red-500 @enderror"
+                            value="{{ old('fecha') }}">
+                        @error('fecha')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Detalle / Observaciones
+                            (opcional)</label>
+                        <textarea name="detalle" rows="4"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('detalle') border-red-500 @enderror"
-                            placeholder="Descripción adicional del comprobante...">{{ old('detalle') }}</textarea>
+                            placeholder="Observaciones o comentarios adicionales...">{{ old('detalle') }}</textarea>
                         @error('detalle')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Archivo (imagen o PDF) <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Archivo (imagen o PDF) <span
+                                class="text-red-500">*</span></label>
                         <div id="drop-zone"
                             class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition cursor-pointer">
                             <div class="space-y-1 text-center">
@@ -262,6 +286,59 @@
             });
         }
 
+        // Validar Planilla de Movilidad y RMV
+        const tipoSelect = document.querySelector('select[name="tipo"]');
+        const monedaSelect = document.querySelector('select[name="moneda"]');
+        const montoInput = document.querySelector('input[name="monto"]');
+        const rmv = {{ $rmv ?? 1130 }};
+        const maxMontoPlanilla = rmv * 0.04;
+
+        if (tipoSelect) {
+            function checkTipoComprobante() {
+                const selectedOption = tipoSelect.options[tipoSelect.selectedIndex];
+                const tipoTexto = selectedOption ? selectedOption.text.toUpperCase() : '';
+
+                if (tipoTexto.includes('PLANILLA DE MOVILIDAD')) {
+                    // Forzar Soles
+                    monedaSelect.value = 'soles';
+                    monedaSelect.classList.add('bg-gray-100', 'cursor-not-allowed');
+                    // Deshabilitar cambio de moneda visualmente (aunque el backend lo valide)
+                    Array.from(monedaSelect.options).forEach(opt => {
+                        if (opt.value !== 'soles') opt.disabled = true;
+                    });
+
+                    // Validar Monto
+                    validateMonto();
+                } else {
+                    // Restaurar moneda
+                    monedaSelect.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                    Array.from(monedaSelect.options).forEach(opt => {
+                        opt.disabled = false;
+                    });
+                }
+            }
+
+            function validateMonto() {
+                const selectedOption = tipoSelect.options[tipoSelect.selectedIndex];
+                const tipoTexto = selectedOption ? selectedOption.text.toUpperCase() : '';
+
+                if (tipoTexto.includes('PLANILLA DE MOVILIDAD')) {
+                    const monto = parseFloat(montoInput.value) || 0;
+                    if (monto > maxMontoPlanilla) {
+                        alert(`El monto máximo para Planilla de Movilidad es del 4% del RMV (S/ ${maxMontoPlanilla.toFixed(2)})`);
+                        montoInput.value = maxMontoPlanilla.toFixed(2);
+                    }
+                }
+            }
+
+            tipoSelect.addEventListener('change', checkTipoComprobante);
+            montoInput.addEventListener('change', validateMonto); // Validar al cambiar
+            montoInput.addEventListener('blur', validateMonto);   // Validar al salir
+
+            // Verificar estado inicial
+            checkTipoComprobante();
+        }
+
         // Manejar campo "Concepto Otros"
         const conceptoSelect = document.getElementById('concepto-select');
         const conceptoOtroField = document.getElementById('concepto-otro-field');
@@ -271,7 +348,7 @@
             function checkConceptoOtros() {
                 const selectedOption = conceptoSelect.options[conceptoSelect.selectedIndex];
                 const conceptoNombre = selectedOption ? selectedOption.text.trim().toUpperCase() : '';
-                
+
                 if (conceptoNombre === 'OTROS') {
                     conceptoOtroField.classList.remove('hidden');
                     conceptoOtroInput.required = true;

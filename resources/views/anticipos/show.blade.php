@@ -7,6 +7,23 @@
     @auth
         @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo', 'en_observacion']))
             <div class="flex items-center space-x-3">
+                @if(in_array($anticipo->estado, ['pendiente', 'en_observacion']))
+                    <a href="{{ route('anticipos.edit', $anticipo->id) }}"
+                       class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition font-medium">
+                        <i class="fas fa-edit mr-2"></i>Editar
+                    </a>
+                @endif
+                <form action="{{ route('anticipos.destroy', $anticipo->id) }}" 
+                      method="POST" 
+                      class="inline"
+                      onsubmit="return confirm('¿Estás seguro de que deseas eliminar este anticipo? Esta acción eliminará también todos los comprobantes asociados.')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium">
+                        <i class="fas fa-trash mr-2"></i>Eliminar
+                    </button>
+                </form>
                 {{-- <a href="{{ route('anticipos.export.excel', $anticipo->id) }}" 
                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
                     <i class="fas fa-file-excel mr-2"></i>Exportar Excel
@@ -95,53 +112,26 @@
         </div>
     </div>
 
+@php
+    $simbolo = match($anticipo->moneda) {
+        'dolares' => '$',
+        'euros' => '€',
+        default => 'S/.'
+    };
+@endphp
+    <!-- ... existing header code ... -->
+
     <div class="flex flex-col lg:flex-row gap-6">
         <!-- Columna izquierda - Información del anticipo -->
         <div class="flex-1 lg:w-3/5 space-y-6">
             <!-- Información del anticipo -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Información del {{ ucfirst($anticipo->tipo) }}</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Usuario</p>
-                        <p class="text-base font-medium text-gray-900">{{ $anticipo->usuario->name ?? 'N/A' }}</p>
-                        <p class="text-xs text-gray-500">{{ $anticipo->usuario->dni ?? '' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Empresa</p>
-                        <p class="text-base font-medium text-gray-900">{{ $anticipo->area->nombre ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Fecha</p>
-                        <p class="text-base font-medium text-gray-900">{{ $anticipo->fecha->format('d/m/Y') }}</p>
-                    </div>
+                <!-- ... -->
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Importe</p>
-                        <p class="text-lg font-bold text-gray-900">S/ {{ number_format($anticipo->importe, 2) }}</p>
+                        <p class="text-lg font-bold text-gray-900">{{ $simbolo }} {{ number_format($anticipo->importe, 2) }}</p>
                     </div>
-                    @if($anticipo->banco)
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Banco</p>
-                            <p class="text-base font-medium text-gray-900">{{ $anticipo->banco->descripcion ?? 'N/A' }}</p>
-                        </div>
-                    @endif
-                    @if($anticipo->TipoRendicion)
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">TipoRendicion</p>
-                            <p class="text-base font-medium text-gray-900">{{ $anticipo->TipoRendicion }}</p>
-                        </div>
-                    @endif
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Creado por</p>
-                        <p class="text-base font-medium text-gray-900">{{ $anticipo->creador->name ?? 'N/A' }}</p>
-                    </div>
-                </div>
-                @if($anticipo->descripcion)
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <p class="text-sm text-gray-500 mb-1">Descripción</p>
-                        <p class="text-gray-700 leading-relaxed">{{ $anticipo->descripcion }}</p>
-                    </div>
-                @endif
+                    <!-- ... -->
             </div>
 
             <!-- Progreso del anticipo -->
@@ -151,23 +141,21 @@
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-sm font-medium text-gray-700">Total Aprobado</span>
-                            <span class="text-lg font-bold text-green-600">S/ {{ number_format($totalComprobado, 2) }}</span>
+                            <span class="text-lg font-bold text-green-600">{{ $simbolo }} {{ number_format($totalComprobado, 2) }}</span>
                         </div>
                         @if($totalRechazado > 0)
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-sm font-medium text-gray-700">Total Rechazado</span>
-                                <span class="text-lg font-bold text-red-600">S/ {{ number_format($totalRechazado, 2) }}</span>
+                                <span class="text-lg font-bold text-red-600">{{ $simbolo }} {{ number_format($totalRechazado, 2) }}</span>
                             </div>
                         @endif
-                        <div class="w-full bg-gray-200 rounded-full h-3">
-                            <div class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: {{ $porcentaje }}%"></div>
-                        </div>
+                        <!-- ... -->
                         <div class="flex items-center justify-between mt-2 text-sm text-gray-600">
                             <span>{{ number_format($porcentaje, 1) }}% completado</span>
                             @if($restante > 0)
-                                <span>Falta: S/ {{ number_format($restante, 2) }}</span>
+                                <span>Falta: {{ $simbolo }} {{ number_format($restante, 2) }}</span>
                             @elseif($restante < 0)
-                                <span class="text-red-600 font-medium">Excedente: S/ {{ number_format(abs($restante), 2) }}</span>
+                                <span class="text-red-600 font-medium">Excedente: {{ $simbolo }} {{ number_format(abs($restante), 2) }}</span>
                             @else
                                 <span class="text-green-600 font-medium">Completo</span>
                             @endif
@@ -178,92 +166,14 @@
 
             <!-- Comprobantes asociados -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Comprobantes Asociados ({{ $anticipo->comprobantes->count() }})</h2>
-                @if($anticipo->comprobantes->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                <!-- ... -->
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- ... -->
                                 @foreach($anticipo->comprobantes as $comprobante)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">#{{ $comprobante->id }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $comprobante->tipo }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $comprobante->fecha }}</td>
-                                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">S/ {{ number_format($comprobante->monto, 2) }}</td>
-                                        <td class="px-4 py-3 text-sm">
-                                            @if($comprobante->estado === 'aprobado')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    Aprobado
-                                                </span>
-                                            @elseif($comprobante->estado === 'rechazado')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                    Rechazado
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                    Pendiente
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="px-4 py-3 text-sm font-medium">
-                                            <div class="flex items-center space-x-2">
-                                                <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
-                                                   class="text-blue-600 hover:text-blue-900"
-                                                   title="Ver detalle y conversación">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                @if(
-                                                    Auth::id() === $comprobante->user_id &&
-                                                    !in_array($anticipo->estado, ['aprobado', 'rechazado']) &&
-                                                    $comprobante->estado !== 'aprobado'
-                                                )
-                                                    <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
-                                                       class="text-yellow-600 hover:text-yellow-900"
-                                                       title="Editar comprobante">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                @endif
-                                                
-                                                @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && !in_array($anticipo->estado, ['aprobado', 'rechazado']))
-                                                    @if($comprobante->estado !== 'aprobado')
-                                                        <form action="{{ route('comprobantes.aprobar', $comprobante->id) }}" method="POST" class="inline">
-                                                            @csrf
-                                                            <button type="submit" class="text-green-600 hover:text-green-900" title="Aprobar comprobante">
-                                                                <i class="fas fa-check"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                    @if($comprobante->estado !== 'rechazado')
-                                                        <form action="{{ route('comprobantes.rechazar', $comprobante->id) }}" method="POST" class="inline">
-                                                            @csrf
-                                                            <button type="submit" class="text-red-600 hover:text-red-900" title="Rechazar comprobante">
-                                                                <i class="fas fa-times"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-inbox text-4xl mb-2 text-gray-300"></i>
-                        <p>No hay comprobantes asociados aún</p>
-                    </div>
-                @endif
+                                        <!-- ... -->
+                                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">{{ $simbolo }} {{ number_format($comprobante->monto, 2) }}</td>
+                                        <!-- ... -->
             </div>
         </div>
 
@@ -274,16 +184,16 @@
                 <div class="space-y-4">
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span class="text-sm text-gray-600">Importe Otorgado</span>
-                        <span class="text-lg font-bold text-gray-900">S/ {{ number_format($anticipo->importe, 2) }}</span>
+                        <span class="text-lg font-bold text-gray-900">{{ $simbolo }} {{ number_format($anticipo->importe, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span class="text-sm text-gray-600">Importe Aprobado</span>
-                        <span class="text-lg font-semibold text-blue-600">S/ {{ number_format($totalComprobado, 2) }}</span>
+                        <span class="text-lg font-semibold text-blue-600">{{ $simbolo }} {{ number_format($totalComprobado, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Saldo a Reembolsar</span>
                         <span class="text-lg font-semibold {{ $restante < 0 ? 'text-red-600' : ($restante > 0 ? 'text-yellow-600' : 'text-green-600') }}">
-                            S/ {{ number_format($restante, 2) }}
+                            {{ $simbolo }} {{ number_format($restante, 2) }}
                         </span>
                     </div>
                 </div>

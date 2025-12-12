@@ -15,6 +15,7 @@ class Anticipo extends Model
         'creado_por',
         'tipo',
         'fecha',
+        'moneda',
         'banco_id',
         'TipoRendicion',
         'importe',

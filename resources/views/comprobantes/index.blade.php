@@ -381,7 +381,14 @@
                                                                 <i class="fas fa-file-pdf text-red-600"></i>
                                                                 <div>
                                                                     <p class="text-sm font-medium text-gray-900">{{ $comprobante->tipo }}</p>
-                                                                    <p class="text-xs text-gray-500">{{ $comprobante->fecha }} - S/ {{ number_format($comprobante->monto, 2) }}</p>
+                                                                    <p class="text-xs text-gray-500">
+                                                                        {{ $comprobante->fecha }} - 
+                                                                        @if(($comprobante->moneda ?? 'soles') === 'dolares')
+                                                                            $ {{ number_format($comprobante->monto, 2) }}
+                                                                        @else
+                                                                            S/ {{ number_format($comprobante->monto, 2) }}
+                                                                        @endif
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                             <div class="flex items-center space-x-2">
@@ -510,11 +517,27 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{ route('anticipos.show', $anticipo->id) }}" 
-                                           class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition"
-                                           title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
+                                        <div class="flex items-center space-x-2">
+                                            <a href="{{ route('anticipos.show', $anticipo->id) }}" 
+                                               class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition"
+                                               title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if(!in_array($anticipo->estado, ['aprobado', 'rechazado']))
+                                                <form action="{{ route('anticipos.destroy', $anticipo->id) }}" 
+                                                      method="POST" 
+                                                      class="inline"
+                                                      onsubmit="return confirm('¿Estás seguro de que deseas eliminar este anticipo? Esta acción eliminará también todos los comprobantes asociados.')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" 
+                                                            class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition"
+                                                            title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -623,7 +646,13 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ $comprobante->id }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $comprobante->tipo }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $comprobante->fecha }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">S/ {{ number_format($comprobante->monto, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                        @if(($comprobante->moneda ?? 'soles') === 'dolares')
+                                            $ {{ number_format($comprobante->monto, 2) }}
+                                        @else
+                                            S/ {{ number_format($comprobante->monto, 2) }}
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">{{ $comprobante->detalle ?? '-' }}</td>
                                     @auth
                                         @if(Auth::user()->isAdmin())
@@ -651,8 +680,8 @@
                                                 @if(
                                                     !Auth::user()->isAdmin() &&
                                                     $comprobante->user_id === Auth::id() &&
-                                                    $comprobante->anticipo_id &&
-                                                    !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado'])
+                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado']) &&
+                                                    (!$comprobante->anticipo_id || !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado']))
                                                 )
                                                     <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
                                                        class="text-yellow-600 hover:text-yellow-900 p-2 hover:bg-yellow-50 rounded transition">
@@ -664,8 +693,8 @@
                                                 @if(
                                                     !Auth::user()->isAdmin() &&
                                                     $comprobante->user_id === Auth::id() &&
-                                                    $comprobante->anticipo_id &&
-                                                    !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado'])
+                                                    $comprobante->estado === 'pendiente' &&
+                                                    (!$comprobante->anticipo_id || !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado']))
                                                 )
                                                     <form action="{{ route('comprobantes.destroy', $comprobante->id) }}" 
                                                           method="POST"

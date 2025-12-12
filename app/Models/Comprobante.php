@@ -21,6 +21,7 @@ class Comprobante extends Model
         'numero',
         'ruc_empresa',
         'monto',
+        'moneda',
         'fecha',
         'detalle',
         'archivo',

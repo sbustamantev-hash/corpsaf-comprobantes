@@ -64,6 +64,7 @@ class TipoComprobanteSeeder extends Seeder
             ['codigo' => '97', 'descripcion' => 'Nota de Crédito - No Domiciliado', 'activo' => true],
             ['codigo' => '98', 'descripcion' => 'Nota de Débito - No Domiciliado', 'activo' => true],
             ['codigo' => '99', 'descripcion' => 'Otros - Consolidado de Boletas de Venta', 'activo' => true],
+            ['codigo' => 'PM', 'descripcion' => 'Planilla de Movilidad', 'activo' => true],
         ];
 
         foreach ($tiposComprobante as $tipo) {

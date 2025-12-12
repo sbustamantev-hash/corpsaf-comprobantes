@@ -23,8 +23,9 @@ class ConfiguracionController extends Controller
 
         $nombreApp = Configuracion::obtener('nombre_app', 'YnnovaCorp');
         $logoPath = Configuracion::obtener('logo_path', null);
+        $rmv = Configuracion::obtener('rmv', 1130);
 
-        return view('configuraciones.index', compact('nombreApp', 'logoPath'));
+        return view('configuraciones.index', compact('nombreApp', 'logoPath', 'rmv'));
     }
 
     /**
@@ -62,6 +63,11 @@ class ConfiguracionController extends Controller
         }
 
         Configuracion::establecer('nombre_empresa', $request->nombre_empresa ?? $request->nombre_app, 'text');
+
+        // Actualizar RMV
+        if ($request->has('rmv')) {
+            Configuracion::establecer('rmv', $request->rmv, 'number');
+        }
 
         return redirect()->route('configuraciones.index')
             ->with('success', 'Configuraciones actualizadas correctamente.');

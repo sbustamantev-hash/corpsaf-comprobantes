@@ -55,7 +55,7 @@ Route::middleware('auth')->group(function () {
     // Rutas para aprobar/rechazar comprobantes individuales
     Route::post('comprobantes/{id}/aprobar', [ComprobanteController::class, 'aprobar'])->name('comprobantes.aprobar');
     Route::post('comprobantes/{id}/rechazar', [ComprobanteController::class, 'rechazar'])->name('comprobantes.rechazar');
-    
+
     // Ruta para exportar comprobantes aprobados de la empresa (solo Area Admin)
     Route::get('comprobantes/export/excel', [ComprobanteController::class, 'exportExcel'])->name('comprobantes.export.excel');
 
@@ -91,10 +91,13 @@ Route::middleware('auth')->group(function () {
 
     // Rutas para ver, aprobar/rechazar y exportar anticipos
     Route::get('anticipos/{anticipo}', [AnticipoController::class, 'show'])->name('anticipos.show');
+    Route::get('anticipos/{anticipo}/edit', [AnticipoController::class, 'edit'])->name('anticipos.edit');
+    Route::put('anticipos/{anticipo}', [AnticipoController::class, 'update'])->name('anticipos.update');
     Route::post('anticipos/{anticipo}/aprobar', [AnticipoController::class, 'aprobar'])->name('anticipos.aprobar');
     Route::post('anticipos/{anticipo}/rechazar', [AnticipoController::class, 'rechazar'])->name('anticipos.rechazar');
     Route::get('anticipos/{anticipo}/export/pdf', [AnticipoController::class, 'exportPdf'])->name('anticipos.export.pdf');
     Route::get('anticipos/{anticipo}/export/excel', [AnticipoController::class, 'exportExcel'])->name('anticipos.export.excel');
+    Route::delete('anticipos/{anticipo}', [AnticipoController::class, 'destroy'])->name('anticipos.destroy');
 
     // RUTAS DE REQUERIMIENTOS - Marketing y Empresas
     Route::resource('requerimientos', RequerimientoController::class);
