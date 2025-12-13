@@ -272,15 +272,15 @@ class AreaController extends Controller
                 ->with('error', 'No se puede eliminar un super administrador.');
         }
 
-        // Verificar si tiene anticipos o comprobantes asociados (evitar eliminar historial financiero)
-        if ($user->anticipos()->exists() || $user->comprobantes()->exists()) {
-            return redirect()->route('areas.show', $area->id)
-                ->with('error', 'No se puede eliminar el usuario porque tiene anticipos o comprobantes asociados.');
-        }
-
-        // Eliminar mensajes asociados antes de eliminar al usuario
+        // Usar soft delete para mantener el historial financiero
+        // No eliminamos físicamente el usuario si tiene anticipos o comprobantes
+        // Solo lo marcamos como eliminado (soft delete)
+        
+        // Eliminar mensajes asociados antes de hacer soft delete del usuario
         \App\Models\Mensaje::where('user_id', $user->id)->delete();
 
+        // Usar soft delete - esto mantiene los registros históricos (anticipos, comprobantes)
+        // pero marca al usuario como eliminado
         $user->delete();
 
         return redirect()->route('areas.show', $area->id)

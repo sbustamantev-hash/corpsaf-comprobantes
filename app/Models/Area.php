@@ -21,11 +21,19 @@ class Area extends Model
     ];
 
     /**
-     * Relación con usuarios
+     * Relación con usuarios (excluyendo eliminados)
      */
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+    
+    /**
+     * Relación con usuarios incluyendo eliminados (para historial)
+     */
+    public function usersWithTrashed()
+    {
+        return $this->hasMany(User::class)->withTrashed();
     }
 
     /**

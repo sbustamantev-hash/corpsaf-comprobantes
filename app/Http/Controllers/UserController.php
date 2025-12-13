@@ -18,13 +18,13 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        // Super admin: ver todos los usuarios
+        // Super admin: ver todos los usuarios (excluyendo eliminados)
         if ($user->isAdmin()) {
             $users = User::with('area')
                 ->orderBy('name')
                 ->get();
         }
-        // Area admin: ver solo usuarios de su Empresa
+        // Area admin: ver solo usuarios de su Empresa (excluyendo eliminados)
         elseif ($user->isAreaAdmin()) {
             $users = User::with('area')
                 ->where('area_id', $user->area_id)
@@ -269,6 +269,8 @@ class UserController extends Controller
                 ->with('error', 'No puedes eliminar tu propio usuario.');
         }
 
+        // Usar soft delete para mantener el historial financiero
+        // Los anticipos y comprobantes se mantienen asociados al usuario eliminado
         $user->delete();
 
         return redirect()->route('users.index')
