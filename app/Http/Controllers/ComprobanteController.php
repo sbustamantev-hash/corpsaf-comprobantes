@@ -163,7 +163,7 @@ class ComprobanteController extends Controller
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
-            'moneda' => 'required|in:soles,dolares',
+            'moneda' => 'required|in:soles,dolares,euros',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
             'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:40960',
@@ -378,7 +378,7 @@ class ComprobanteController extends Controller
             'serie' => ['required', 'alpha_num', 'max:4'],
             'numero' => ['required', 'regex:/^\d{1,10}$/'],
             'monto' => 'required|numeric',
-            'moneda' => 'required|in:soles,dolares',
+            'moneda' => 'required|in:soles,dolares,euros',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
             'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'

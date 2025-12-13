@@ -153,6 +153,7 @@
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('moneda') border-red-500 @enderror">
                         <option value="soles" {{ old('moneda', $comprobante->moneda ?? 'soles') == 'soles' ? 'selected' : '' }}>Soles (S/.)</option>
                         <option value="dolares" {{ old('moneda', $comprobante->moneda ?? 'soles') == 'dolares' ? 'selected' : '' }}>Dólares ($)</option>
+                        <option value="euros" {{ old('moneda', $comprobante->moneda ?? 'soles') == 'euros' ? 'selected' : '' }}>Euros (€)</option>
                     </select>
                     @error('moneda')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

@@ -385,6 +385,8 @@
                                                                         {{ $comprobante->fecha }} - 
                                                                         @if(($comprobante->moneda ?? 'soles') === 'dolares')
                                                                             $ {{ number_format($comprobante->monto, 2) }}
+                                                                        @elseif(($comprobante->moneda ?? 'soles') === 'euros')
+                                                                            € {{ number_format($comprobante->monto, 2) }}
                                                                         @else
                                                                             S/ {{ number_format($comprobante->monto, 2) }}
                                                                         @endif
@@ -649,6 +651,8 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                         @if(($comprobante->moneda ?? 'soles') === 'dolares')
                                             $ {{ number_format($comprobante->monto, 2) }}
+                                        @elseif(($comprobante->moneda ?? 'soles') === 'euros')
+                                            € {{ number_format($comprobante->monto, 2) }}
                                         @else
                                             S/ {{ number_format($comprobante->monto, 2) }}
                                         @endif

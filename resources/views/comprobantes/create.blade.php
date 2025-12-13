@@ -126,6 +126,8 @@
                                 </option>
                                 <option value="dolares" {{ old('moneda') == 'dolares' ? 'selected' : '' }}>Dólares ($)
                                 </option>
+                                <option value="euros" {{ old('moneda') == 'euros' ? 'selected' : '' }}>Euros (€)
+                                </option>
                             </select>
                             @error('moneda')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

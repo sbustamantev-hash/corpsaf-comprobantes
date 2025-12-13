@@ -135,6 +135,8 @@
                         <p class="text-lg font-bold text-gray-900">
                             @if(($comprobante->moneda ?? 'soles') === 'dolares')
                                 $ {{ number_format($comprobante->monto, 2) }}
+                            @elseif(($comprobante->moneda ?? 'soles') === 'euros')
+                                € {{ number_format($comprobante->monto, 2) }}
                             @else
                                 S/ {{ number_format($comprobante->monto, 2) }}
                             @endif
@@ -143,7 +145,13 @@
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Moneda</p>
                         <p class="text-base font-medium text-gray-900">
-                            {{ ($comprobante->moneda ?? 'soles') === 'dolares' ? 'Dólares ($)' : 'Soles (S/.)' }}
+                            @if(($comprobante->moneda ?? 'soles') === 'dolares')
+                                Dólares ($)
+                            @elseif(($comprobante->moneda ?? 'soles') === 'euros')
+                                Euros (€)
+                            @else
+                                Soles (S/.)
+                            @endif
                         </p>
                     </div>
                 </div>
