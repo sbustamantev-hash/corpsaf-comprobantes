@@ -238,6 +238,7 @@ class ComprobanteController extends Controller
             }
 
             // Validar que Serie+Número sean únicos dentro del anticipo
+            // Esta validación asegura que no se repitan comprobantes dentro de la misma rendición
             $serie = str_pad(strtoupper($validated['serie']), 4, '0', STR_PAD_LEFT);
             $numero = str_pad($validated['numero'], 10, '0', STR_PAD_LEFT);
 
@@ -249,7 +250,7 @@ class ComprobanteController extends Controller
             if ($existeComprobante) {
                 return back()
                     ->withInput()
-                    ->withErrors(['serie' => 'Ya existe un comprobante con esta Serie y Número en esta rendición.']);
+                    ->withErrors(['serie' => 'Ya existe un comprobante con esta Serie y Número en esta rendición. Los campos Serie y Número deben ser únicos dentro de cada rendición.']);
             }
         } else {
             $serie = str_pad(strtoupper($validated['serie']), 4, '0', STR_PAD_LEFT);
@@ -421,17 +422,21 @@ class ComprobanteController extends Controller
             abort(403, 'No puedes modificar un comprobante que ha sido aprobado o rechazado.');
         }
 
-        // No permitir edición si el anticipo asociado está aprobado o rechazado
+        // Preparar serie y número normalizados
+        $serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
+        $numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
+
+        // Validar unicidad de Serie+Número dentro del anticipo
+        // Si el comprobante tiene un anticipo_id, validar dentro de ese anticipo
         if ($comprobante->anticipo_id) {
             $anticipo = $comprobante->anticipo;
+            
+            // Verificar si el anticipo está bloqueado
             if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
                 abort(403, 'No puedes modificar comprobantes de un anticipo aprobado o rechazado.');
             }
 
             // Validar que Serie+Número sean únicos dentro del anticipo (excluyendo el comprobante actual)
-            $serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
-            $numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
-
             $existeComprobante = Comprobante::where('anticipo_id', $anticipo->id)
                 ->where('serie', $serie)
                 ->where('numero', $numero)
@@ -441,11 +446,8 @@ class ComprobanteController extends Controller
             if ($existeComprobante) {
                 return back()
                     ->withInput()
-                    ->withErrors(['serie' => 'Ya existe un comprobante con esta Serie y Número en esta rendición.']);
+                    ->withErrors(['serie' => 'Ya existe un comprobante con esta Serie y Número en esta rendición. Los campos Serie y Número deben ser únicos dentro de cada rendición.']);
             }
-        } else {
-            $serie = str_pad(strtoupper($request->serie), 4, '0', STR_PAD_LEFT);
-            $numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
         }
 
         // VALIDACIÓN GLOBAL: Verificar si ya existe un comprobante con el mismo RUC, Serie y Número (excluyendo el actual)
