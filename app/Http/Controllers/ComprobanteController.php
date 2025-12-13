@@ -201,12 +201,17 @@ class ComprobanteController extends Controller
                 return back()->withInput()->withErrors(['archivo' => 'El archivo subido no es válido (Error: ' . $file->getError() . ')']);
             }
 
-            // Generar nombre único para evitar problemas con nombres vacíos
+            // Generar nombre único
             $extension = $file->getClientOriginalExtension() ?: 'ext';
             $filename = uniqid('comp_', true) . '.' . $extension;
 
-            // Usar storeAs para asegurar que el nombre no esté vacío
-            $archivoPath = $file->storeAs('comprobantes', $filename, 'public');
+            // Usar Storage facade directamente para evitar problemas con la abstracción de UploadedFile
+            try {
+                $archivoPath = Storage::disk('public')->putFileAs('comprobantes', $file, $filename);
+            } catch (\Exception $e) {
+                Log::error('Error al subir archivo: ' . $e->getMessage());
+                return back()->withInput()->withErrors(['archivo' => 'Error interno al guardar el archivo: ' . $e->getMessage()]);
+            }
 
             if (!$archivoPath) {
                 return back()->withInput()->withErrors(['archivo' => 'Error al guardar el archivo en el disco.']);
@@ -249,6 +254,19 @@ class ComprobanteController extends Controller
         } else {
             $serie = str_pad(strtoupper($validated['serie']), 4, '0', STR_PAD_LEFT);
             $numero = str_pad($validated['numero'], 10, '0', STR_PAD_LEFT);
+        }
+
+        // VALIDACIÓN GLOBAL: Verificar si ya existe un comprobante con el mismo RUC, Serie y Número
+        // Esto evita que cualquier usuario registre un duplicado de un comprobante ya existente
+        $duplicadoGlobal = Comprobante::where('ruc_empresa', $validated['ruc_empresa'])
+            ->where('serie', $serie)
+            ->where('numero', $numero)
+            ->exists();
+
+        if ($duplicadoGlobal) {
+            return back()
+                ->withInput()
+                ->withErrors(['numero' => 'Ya existe un comprobante registrado con este RUC, Serie y Número en el sistema.']);
         }
 
         $comprobante = Comprobante::create([
@@ -430,13 +448,32 @@ class ComprobanteController extends Controller
             $numero = str_pad($request->numero, 10, '0', STR_PAD_LEFT);
         }
 
+        // VALIDACIÓN GLOBAL: Verificar si ya existe un comprobante con el mismo RUC, Serie y Número (excluyendo el actual)
+        $duplicadoGlobal = Comprobante::where('ruc_empresa', $request->ruc_empresa)
+            ->where('serie', $serie)
+            ->where('numero', $numero)
+            ->where('id', '!=', $comprobante->id)
+            ->exists();
+
+        if ($duplicadoGlobal) {
+            return back()
+                ->withInput()
+                ->withErrors(['numero' => 'Ya existe un comprobante registrado con este RUC, Serie y Número en el sistema.']);
+        }
+
         if ($request->hasFile('archivo')) {
             // Borrar archivo anterior si existe
             if ($comprobante->archivo) {
                 Storage::disk('public')->delete($comprobante->archivo);
             }
-            $archivoPath = $request->file('archivo')->store('comprobantes', 'public');
-            $comprobante->archivo = $archivoPath;
+            try {
+                // Usar putFile para generar nombre automático y guardar en disco público
+                $archivoPath = Storage::disk('public')->putFile('comprobantes', $request->file('archivo'));
+                $comprobante->archivo = $archivoPath;
+            } catch (\Exception $e) {
+                Log::error('Error al subir archivo en update: ' . $e->getMessage());
+                return back()->withInput()->withErrors(['archivo' => 'Error interno al actualizar el archivo.']);
+            }
         }
 
         // Obtener el concepto para verificar si es "OTROS"
@@ -485,10 +522,7 @@ class ComprobanteController extends Controller
             abort(403, 'No puedes eliminar un comprobante que ha sido aprobado o rechazado.');
         }
 
-        // Si es operador/usuario, solo permitir si está en "pendiente"
-        if (!$user->isAdmin() && !$user->isAreaAdmin() && $comprobante->estado !== 'pendiente') {
-            abort(403, 'Solo puedes eliminar comprobantes que están pendientes.');
-        }
+        // (Regla eliminada: Se permite eliminar en cualquier estado que no sea aprobado/rechazado)
 
         // Verificar si el anticipo asociado está bloqueado
         if ($comprobante->anticipo_id) {

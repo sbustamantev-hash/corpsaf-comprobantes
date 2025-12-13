@@ -267,11 +267,19 @@ class AreaController extends Controller
                 ->with('error', 'El usuario no pertenece a esta Empresa.');
         }
 
-        // No permitir eliminar super admin
         if ($user->isAdmin()) {
             return redirect()->route('areas.show', $area->id)
                 ->with('error', 'No se puede eliminar un super administrador.');
         }
+
+        // Verificar si tiene anticipos o comprobantes asociados (evitar eliminar historial financiero)
+        if ($user->anticipos()->exists() || $user->comprobantes()->exists()) {
+            return redirect()->route('areas.show', $area->id)
+                ->with('error', 'No se puede eliminar el usuario porque tiene anticipos o comprobantes asociados.');
+        }
+
+        // Eliminar mensajes asociados antes de eliminar al usuario
+        \App\Models\Mensaje::where('user_id', $user->id)->delete();
 
         $user->delete();
 
