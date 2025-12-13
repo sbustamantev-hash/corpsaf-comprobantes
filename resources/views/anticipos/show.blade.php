@@ -5,7 +5,7 @@
 
 @section('header-actions')
     @auth
-        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo', 'en_observacion']))
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && !in_array($anticipo->estado, ['aprobado', 'rechazado']))
             <div class="flex items-center space-x-3">
                 @if(in_array($anticipo->estado, ['pendiente', 'en_observacion']))
                     <a href="{{ route('anticipos.edit', $anticipo->id) }}"

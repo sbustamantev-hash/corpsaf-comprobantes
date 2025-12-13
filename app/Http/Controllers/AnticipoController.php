@@ -687,14 +687,22 @@ class AnticipoController extends Controller
         $user = Auth::user();
         $anticipo = Anticipo::findOrFail($id);
 
-        if (!$user->isAreaAdmin()) {
-            abort(403, 'Solo los administradores de empresa pueden eliminar anticipos.');
+        // Super admin puede eliminar cualquier anticipo
+        if ($user->isAdmin()) {
+            // Permitir eliminación
+        }
+        // Area admin solo puede eliminar anticipos de su empresa
+        elseif ($user->isAreaAdmin()) {
+            if ($anticipo->area_id !== $user->area_id) {
+                abort(403, 'Solo puedes eliminar anticipos de tu Empresa.');
+            }
+        }
+        // Otros usuarios no pueden eliminar
+        else {
+            abort(403, 'Solo los administradores pueden eliminar anticipos.');
         }
 
-        if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
-            abort(403, 'Solo puedes eliminar anticipos de tu Empresa.');
-        }
-
+        // No permitir eliminar si el anticipo está aprobado o rechazado
         if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
             return redirect()->back()->with('error', 'No se puede eliminar un anticipo aprobado o rechazado.');
         }
