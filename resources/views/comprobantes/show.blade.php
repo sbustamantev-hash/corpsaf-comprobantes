@@ -19,7 +19,22 @@
             @endif
         @endif
 
-        @if(!Auth::user()->isAdmin() && !Auth::user()->isAreaAdmin() && $comprobante->user_id === Auth::id() && $comprobante->estado === 'pendiente')
+        @php
+            $puedeEliminar = false;
+            // Puede eliminar si es el dueño del comprobante
+            if ($comprobante->user_id === Auth::id()) {
+                $puedeEliminar = true;
+            }
+            // O si es el dueño del anticipo (generador de la rendición)
+            elseif ($comprobante->anticipo_id && $comprobante->anticipo && $comprobante->anticipo->user_id === Auth::id()) {
+                $puedeEliminar = true;
+            }
+            // O si es super admin
+            elseif (Auth::user()->isAdmin()) {
+                $puedeEliminar = true;
+            }
+        @endphp
+        @if($puedeEliminar && !Auth::user()->isAreaAdmin() && !in_array($comprobante->estado, ['aprobado', 'rechazado']))
             @if(!$comprobante->anticipo_id || !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado']))
                 <div class="flex items-center space-x-3">
                     <form action="{{ route('comprobantes.destroy', $comprobante->id) }}" method="POST" class="inline"

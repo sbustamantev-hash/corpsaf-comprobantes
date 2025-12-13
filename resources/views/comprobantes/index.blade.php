@@ -690,10 +690,24 @@
                                                 @endif
                                             @endauth
                                             @auth
+                                                @php
+                                                    $puedeEliminar = false;
+                                                    // Puede eliminar si es el dueño del comprobante
+                                                    if ($comprobante->user_id === Auth::id()) {
+                                                        $puedeEliminar = true;
+                                                    }
+                                                    // O si es el dueño del anticipo (generador de la rendición)
+                                                    elseif ($comprobante->anticipo_id && $comprobante->anticipo && $comprobante->anticipo->user_id === Auth::id()) {
+                                                        $puedeEliminar = true;
+                                                    }
+                                                    // O si es super admin
+                                                    elseif (Auth::user()->isAdmin()) {
+                                                        $puedeEliminar = true;
+                                                    }
+                                                @endphp
                                                 @if(
-                                                    !Auth::user()->isAdmin() &&
-                                                    $comprobante->user_id === Auth::id() &&
-                                                    $comprobante->estado === 'pendiente' &&
+                                                    $puedeEliminar &&
+                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado']) &&
                                                     (!$comprobante->anticipo_id || !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado']))
                                                 )
                                                     <form action="{{ route('comprobantes.destroy', $comprobante->id) }}" 
@@ -702,7 +716,7 @@
                                                           onsubmit="return confirm('¿Seguro que deseas eliminar este comprobante?')">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition">
+                                                        <button type="submit" class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition" title="Eliminar comprobante">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>

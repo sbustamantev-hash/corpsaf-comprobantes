@@ -510,11 +510,36 @@ class ComprobanteController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $comprobante = Comprobante::findOrFail($id);
+        $comprobante = Comprobante::with('anticipo')->findOrFail($id);
 
-        // Si es operador, solo puede eliminar sus propios comprobantes
-        if (!$user->isAdmin() && $comprobante->user_id !== $user->id) {
-            abort(403, 'No tienes permisos para eliminar este comprobante.');
+        // Super admin puede eliminar cualquier comprobante
+        if ($user->isAdmin()) {
+            // Permitir eliminación
+        }
+        // Si es operador, puede eliminar:
+        // 1. Sus propios comprobantes
+        // 2. Cualquier comprobante de un anticipo del cual es dueño (generador de la rendición)
+        elseif (!$user->isAreaAdmin()) {
+            $puedeEliminar = false;
+            
+            // Puede eliminar si es el dueño del comprobante
+            if ($comprobante->user_id === $user->id) {
+                $puedeEliminar = true;
+            }
+            // O si es el dueño del anticipo (generador de la rendición)
+            elseif ($comprobante->anticipo_id && $comprobante->anticipo) {
+                if ($comprobante->anticipo->user_id === $user->id) {
+                    $puedeEliminar = true;
+                }
+            }
+            
+            if (!$puedeEliminar) {
+                abort(403, 'No tienes permisos para eliminar este comprobante.');
+            }
+        }
+        // Area admin: no puede eliminar comprobantes directamente
+        else {
+            abort(403, 'No tienes permisos para eliminar comprobantes.');
         }
 
         // No permitir eliminar si el comprobante está aprobado o rechazado
@@ -522,12 +547,9 @@ class ComprobanteController extends Controller
             abort(403, 'No puedes eliminar un comprobante que ha sido aprobado o rechazado.');
         }
 
-        // (Regla eliminada: Se permite eliminar en cualquier estado que no sea aprobado/rechazado)
-
         // Verificar si el anticipo asociado está bloqueado
-        if ($comprobante->anticipo_id) {
-            $anticipo = Anticipo::findOrFail($comprobante->anticipo_id);
-            if (in_array($anticipo->estado, ['aprobado', 'rechazado'])) {
+        if ($comprobante->anticipo_id && $comprobante->anticipo) {
+            if (in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado'])) {
                 abort(403, 'No puedes eliminar un comprobante de un anticipo aprobado o rechazado.');
             }
         }
