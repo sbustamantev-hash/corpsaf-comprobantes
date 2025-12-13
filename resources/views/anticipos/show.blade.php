@@ -5,7 +5,7 @@
 
 @section('header-actions')
     @auth
-        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && !in_array($anticipo->estado, ['aprobado', 'rechazado']))
+        @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['pendiente', 'completo', 'en_observacion']))
             <div class="flex items-center space-x-3">
                 @if(in_array($anticipo->estado, ['pendiente', 'en_observacion']))
                     <a href="{{ route('anticipos.edit', $anticipo->id) }}"
@@ -166,14 +166,98 @@
 
             <!-- Comprobantes asociados -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <!-- ... -->
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
-                                    <!-- ... -->
-                                @foreach($anticipo->comprobantes as $comprobante)
-                                    <tr class="hover:bg-gray-50">
-                                        <!-- ... -->
-                                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">{{ $simbolo }} {{ number_format($comprobante->monto, 2) }}</td>
-                                        <!-- ... -->
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Comprobantes asociados</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TIPO</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">FECHA</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MONTO</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ESTADO</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($anticipo->comprobantes as $comprobante)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-sm text-gray-900">{{ $comprobante->tipo }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700">{{ $comprobante->fecha->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">{{ $simbolo }} {{ number_format($comprobante->monto, 2) }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        @if($comprobante->estado === 'aprobado')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-check-circle mr-1"></i>Aprobado
+                                            </span>
+                                        @elseif($comprobante->estado === 'rechazado')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-times-circle mr-1"></i>Rechazado
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <i class="fas fa-hourglass-half mr-1"></i>Pendiente
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex items-center space-x-2">
+                                            <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
+                                               class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition"
+                                               title="Ver detalle">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @auth
+                                                @if(Auth::user()->isAdmin() || Auth::user()->isAreaAdmin())
+                                                    {{-- Si está aprobado: mostrar botón para rechazar --}}
+                                                    @if($comprobante->estado === 'aprobado')
+                                                        <form action="{{ route('comprobantes.rechazar', $comprobante->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" 
+                                                                    class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition"
+                                                                    title="Rechazar comprobante"
+                                                                    onclick="return confirm('¿Estás seguro de que deseas rechazar este comprobante?')">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                    
+                                                    {{-- Si está rechazado o pendiente: mostrar botón para aprobar --}}
+                                                    @if(in_array($comprobante->estado, ['pendiente', 'rechazado']))
+                                                        <form action="{{ route('comprobantes.aprobar', $comprobante->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" 
+                                                                    class="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded transition"
+                                                                    title="Aprobar comprobante"
+                                                                    onclick="return confirm('¿Estás seguro de que deseas aprobar este comprobante?')">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                    
+                                                    {{-- Si está aprobado: también mostrar opción para mandar a observación (ir a la página de detalle donde se puede agregar observación) --}}
+                                                    @if($comprobante->estado === 'aprobado')
+                                                        <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
+                                                           class="text-yellow-600 hover:text-yellow-900 p-2 hover:bg-yellow-50 rounded transition"
+                                                           title="Agregar observación">
+                                                            <i class="fas fa-comment-alt"></i>
+                                                        </a>
+                                                    @endif
+                                                @endif
+                                            @endauth
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            @if($anticipo->comprobantes->isEmpty())
+                                <tr>
+                                    <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">
+                                        No hay comprobantes asociados a este anticipo.
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -309,4 +393,3 @@
         });
     </script>
 @endsection
-
