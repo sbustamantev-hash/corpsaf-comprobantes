@@ -90,15 +90,13 @@ class ComprobanteController extends Controller
 
         // Calcular estadísticas para Area Admin basadas en Anticipos
         if ($user->isAreaAdmin()) {
-            // Sobrescribir las variables que se usan en la vista para las tarjetas
-            // La vista usa $pendientes, $aprobados, $rechazados, $total
-            // Pero estas variables se calculan en la vista actualmente.
-            // Vamos a pasarlas explícitamente para asegurar que se usen las de anticipos.
-
             $pendientes = $anticipos->whereIn('estado', ['pendiente', 'en_observacion'])->count();
             $aprobados = $anticipos->where('estado', 'aprobado')->count();
             $rechazados = $anticipos->where('estado', 'rechazado')->count();
             $total = $anticipos->count();
+
+            // Calcular métricas del dashboard
+            $dashboardMetrics = $this->calculateDashboardMetrics($comprobantes, $anticipos, $user);
 
             return view('comprobantes.index', compact(
                 'comprobantes',
@@ -109,7 +107,13 @@ class ComprobanteController extends Controller
                 'aprobados',
                 'rechazados',
                 'total'
-            ));
+            ))->with($dashboardMetrics);
+        }
+
+        // Calcular métricas para Operador
+        if ($user->isOperador()) {
+            $dashboardMetrics = $this->calculateDashboardMetrics($comprobantes, $anticipos, $user);
+            return view('comprobantes.index', compact('comprobantes', 'anticipos', 'tiposComprobante', 'operadores'))->with($dashboardMetrics);
         }
 
         return view('comprobantes.index', compact('comprobantes', 'anticipos', 'tiposComprobante', 'operadores'));
@@ -1103,5 +1107,120 @@ class ComprobanteController extends Controller
             }
         }
         return rmdir($dir);
+    }
+
+    /**
+     * Calcular métricas del dashboard
+     */
+    private function calculateDashboardMetrics($comprobantes, $anticipos, $user)
+    {
+        $now = now();
+        $mesActual = $now->month;
+        $añoActual = $now->year;
+        $mesAnterior = $now->copy()->subMonth();
+
+        // Gasto Total del Mes Actual
+        $gastoMesActual = $comprobantes
+            ->where('estado', 'aprobado')
+            ->filter(function ($c) use ($mesActual, $añoActual) {
+                return $c->fecha && $c->fecha->month == $mesActual && $c->fecha->year == $añoActual;
+            })
+            ->sum('monto');
+
+        // Gasto del Mes Anterior
+        $gastoMesAnterior = $comprobantes
+            ->where('estado', 'aprobado')
+            ->filter(function ($c) use ($mesAnterior) {
+                return $c->fecha && $c->fecha->month == $mesAnterior->month && $c->fecha->year == $mesAnterior->year;
+            })
+            ->sum('monto');
+
+        // Porcentaje de cambio
+        $porcentajeCambio = 0;
+        if ($gastoMesAnterior > 0) {
+            $porcentajeCambio = round((($gastoMesActual - $gastoMesAnterior) / $gastoMesAnterior) * 100, 1);
+        } elseif ($gastoMesActual > 0 && $gastoMesAnterior == 0) {
+            $porcentajeCambio = 100; // Nuevo gasto
+        }
+
+        // Pendientes Aprobación
+        $pendientesAprobacion = $comprobantes->where('estado', 'pendiente')->count();
+
+        // Comprobantes Aprobados
+        $comprobantesAprobados = $comprobantes->where('estado', 'aprobado')->count();
+        $totalComprobantes = $comprobantes->count();
+        $efectividad = $totalComprobantes > 0 
+            ? round(($comprobantesAprobados / $totalComprobantes) * 100, 0)
+            : 0;
+
+        // Observados/Rechazados
+        $observadosRechazados = $comprobantes->whereIn('estado', ['en_observacion', 'rechazado'])->count();
+
+        // Evolución de Gastos (últimos 6 meses)
+        $evolucionGastos = [];
+        $labelsMeses = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $fecha = $now->copy()->subMonths($i);
+            $mesNombre = $fecha->locale('es')->monthName;
+            $labelsMeses[] = ucfirst(substr($mesNombre, 0, 3));
+            
+            $gastoMes = $comprobantes
+                ->where('estado', 'aprobado')
+                ->filter(function ($c) use ($fecha) {
+                    return $c->fecha && $c->fecha->month == $fecha->month && $c->fecha->year == $fecha->year;
+                })
+                ->sum('monto');
+            
+            $evolucionGastos[] = round($gastoMes, 2);
+        }
+
+        // Distribución Anticipo vs Reembolso
+        $totalAnticipos = $anticipos->where('tipo', 'anticipo')->sum('importe');
+        $totalReembolsos = $anticipos->where('tipo', 'reembolso')->sum('importe');
+        $totalAnticiposReembolsos = $totalAnticipos + $totalReembolsos;
+
+        // Gastos por Concepto
+        $gastosPorConcepto = [];
+        $conceptos = \App\Models\Concepto::all();
+        foreach ($conceptos as $concepto) {
+            $gasto = $comprobantes
+                ->where('estado', 'aprobado')
+                ->where('concepto_id', $concepto->id)
+                ->sum('monto');
+            if ($gasto > 0) {
+                $gastosPorConcepto[] = [
+                    'nombre' => $concepto->nombre,
+                    'monto' => round($gasto, 2)
+                ];
+            }
+        }
+        // Ordenar por monto descendente
+        usort($gastosPorConcepto, function($a, $b) {
+            return $b['monto'] <=> $a['monto'];
+        });
+
+        // Estado de Comprobantes
+        $estadoComprobantes = [
+            'aprobado' => $comprobantes->where('estado', 'aprobado')->count(),
+            'pendiente' => $comprobantes->where('estado', 'pendiente')->count(),
+            'observado' => $comprobantes->where('estado', 'en_observacion')->count(),
+            'rechazado' => $comprobantes->where('estado', 'rechazado')->count(),
+        ];
+
+        return [
+            'gastoMesActual' => $gastoMesActual,
+            'gastoMesAnterior' => $gastoMesAnterior,
+            'porcentajeCambio' => $porcentajeCambio,
+            'pendientesAprobacion' => $pendientesAprobacion,
+            'comprobantesAprobados' => $comprobantesAprobados,
+            'efectividad' => $efectividad,
+            'observadosRechazados' => $observadosRechazados,
+            'evolucionGastos' => $evolucionGastos,
+            'labelsMeses' => $labelsMeses,
+            'totalAnticipos' => $totalAnticipos,
+            'totalReembolsos' => $totalReembolsos,
+            'gastosPorConcepto' => $gastosPorConcepto,
+            'estadoComprobantes' => $estadoComprobantes,
+        ];
     }
 }

@@ -39,28 +39,57 @@
         }
     @endphp
 
-    @if(Auth::user()->isOperador())
-        <!-- Summary Cards para Operadores -->
+    @if((Auth::user()->isOperador() || Auth::user()->isAreaAdmin()) && isset($gastoMesActual))
+        <!-- Dashboard con Métricas y Gráficos -->
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">GASTO TOTAL (MES)</h2>
+        
+        <!-- KPI Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Gasto Total Mes -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600 mb-1">Pendientes</p>
-                        <p class="text-3xl font-bold text-yellow-600">{{ $anticiposPendientes }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
+                        <p class="text-sm font-medium text-gray-600 mb-1">GASTO TOTAL (MES)</p>
+                        <p class="text-3xl font-bold text-blue-600">S/ {{ number_format($gastoMesActual ?? 0, 2) }}</p>
+                        <div class="flex items-center mt-2">
+                            @if(($porcentajeCambio ?? 0) > 0)
+                                <i class="fas fa-arrow-up text-red-500 text-xs mr-1"></i>
+                                <span class="text-xs text-red-500">{{ abs($porcentajeCambio ?? 0) }}% vs mes anterior</span>
+                            @elseif(($porcentajeCambio ?? 0) < 0)
+                                <i class="fas fa-arrow-down text-green-500 text-xs mr-1"></i>
+                                <span class="text-xs text-green-500">{{ abs($porcentajeCambio ?? 0) }}% vs mes anterior</span>
+                            @else
+                                <span class="text-xs text-gray-500">Sin cambios</span>
+                            @endif
+                        </div>
                     </div>
-                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-hourglass-half text-yellow-600 text-xl"></i>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-wallet text-blue-600 text-xl"></i>
                     </div>
                 </div>
             </div>
 
+            <!-- Pendientes Aprobación -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600 mb-1">Completados</p>
-                        <p class="text-3xl font-bold text-green-600">{{ $anticiposCompletos }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
+                        <p class="text-sm font-medium text-gray-600 mb-1">PENDIENTES APROBACIÓN</p>
+                        <p class="text-3xl font-bold text-yellow-600">{{ $pendientesAprobacion ?? 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Solicitudes en cola</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comprobantes Aprobados -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">COMPROBANTES APROBADOS</p>
+                        <p class="text-3xl font-bold text-green-600">{{ $comprobantesAprobados ?? 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $efectividad ?? 0 }}% de efectividad</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-check-circle text-green-600 text-xl"></i>
@@ -68,32 +97,215 @@
                 </div>
             </div>
 
+            <!-- Observados/Rechazados -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600 mb-1">Total Asignado</p>
-                        <p class="text-2xl font-bold text-blue-600">S/ {{ number_format($totalAsignado, 2) }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Monto recibido</p>
+                        <p class="text-sm font-medium text-gray-600 mb-1">OBSERVADOS / RECH.</p>
+                        <p class="text-3xl font-bold text-red-600">{{ $observadosRechazados ?? 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Atención requerida</p>
                     </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 mb-1">Total Comprobado</p>
-                        <p class="text-2xl font-bold text-purple-600">S/ {{ number_format($totalComprobado, 2) }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Con comprobantes</p>
-                    </div>
-                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-file-invoice-dollar text-purple-600 text-xl"></i>
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Gráficos - Primera Fila -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Evolución de Gastos -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Evolución de Gastos (Últimos 6 meses)</h3>
+                <div class="relative" style="height: 350px;">
+                    <canvas id="evolucionGastosChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Distribución Anticipo vs Reembolso -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Distribución (Anticipo vs Reembolso)</h3>
+                <div class="relative" style="height: 350px;">
+                    <canvas id="distribucionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos - Segunda Fila -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Gastos por Concepto -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Gastos por Concepto</h3>
+                <div class="relative" style="height: 350px;">
+                    <canvas id="gastosConceptoChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Estado de Comprobantes -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Estado de Comprobantes</h3>
+                <div class="relative" style="height: 350px;">
+                    <canvas id="estadoComprobantesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripts para los gráficos -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Evolución de Gastos
+                const evolucionCtx = document.getElementById('evolucionGastosChart');
+                if (evolucionCtx) {
+                    new Chart(evolucionCtx, {
+                        type: 'line',
+                        data: {
+                            labels: @json($labelsMeses ?? []),
+                            datasets: [{
+                                label: 'Gastos',
+                                data: @json($evolucionGastos ?? []),
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return 'S/ ' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Distribución Anticipo vs Reembolso
+                const distribucionCtx = document.getElementById('distribucionChart');
+                if (distribucionCtx) {
+                    new Chart(distribucionCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Anticipos', 'Reembolsos'],
+                            datasets: [{
+                                data: [@json($totalAnticipos ?? 0), @json($totalReembolsos ?? 0)],
+                                backgroundColor: [
+                                    'rgb(59, 130, 246)',
+                                    'rgb(16, 185, 129)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Gastos por Concepto
+                const gastosConceptoCtx = document.getElementById('gastosConceptoChart');
+                if (gastosConceptoCtx) {
+                    const conceptosData = @json($gastosPorConcepto ?? []);
+                    new Chart(gastosConceptoCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: conceptosData.map(c => c.nombre),
+                            datasets: [{
+                                label: 'Gastos',
+                                data: conceptosData.map(c => c.monto),
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.8)',
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(251, 191, 36, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)',
+                                    'rgba(139, 92, 246, 0.8)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return 'S/ ' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Estado de Comprobantes
+                const estadoCtx = document.getElementById('estadoComprobantesChart');
+                if (estadoCtx) {
+                    const estadoData = @json($estadoComprobantes ?? []);
+                    new Chart(estadoCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Aprobado', 'Pendiente', 'Observado', 'Rechazado'],
+                            datasets: [{
+                                label: 'Cantidad',
+                                data: [
+                                    estadoData.aprobado || 0,
+                                    estadoData.pendiente || 0,
+                                    estadoData.observado || 0,
+                                    estadoData.rechazado || 0
+                                ],
+                                backgroundColor: [
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(251, 191, 36, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)',
+                                    'rgba(107, 114, 128, 0.8)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
     @elseif(Auth::user()->isAdmin())
     <!-- Summary Cards para Super Admin - Estadísticas Generales -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -149,61 +361,6 @@
             </div>
         </div>
     </div>
-    @else
-    <!-- Summary Cards para Area Admin -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">Pendientes</p>
-                    <p class="text-3xl font-bold text-yellow-600">{{ $pendientes }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
-                </div>
-                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 mb-1">Aprobados</p>
-                        <p class="text-3xl font-bold text-green-600">{{ $aprobados }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
-                    </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 mb-1">Rechazados</p>
-                        <p class="text-3xl font-bold text-red-600">{{ $rechazados }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
-                    </div>
-                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-times-circle text-red-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 mb-1">Total</p>
-                        <p class="text-3xl font-bold text-blue-600">{{ $total }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Anticipos/Reembolsos</p>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
     @endif
 
     @if(Auth::user()->isAreaAdmin())
