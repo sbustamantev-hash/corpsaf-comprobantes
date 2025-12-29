@@ -19,10 +19,16 @@
 
         <!-- Tabla de devoluciones y reembolsos -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-900">
                     {{ Auth::user()->isOperador() ? 'Mis Devoluciones' : 'Devoluciones y Reembolsos' }}
                 </h2>
+                @if(Auth::user()->isOperador())
+                    <a href="{{ route('comprobantes.index') }}" 
+                       class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                        <i class="fas fa-arrow-left mr-2"></i>Ir a Mis Anticipos
+                    </a>
+                @endif
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -142,8 +148,32 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ Auth::user()->isAdmin() || Auth::user()->isAreaAdmin() ? '8' : '7' }}" class="px-6 py-8 text-center text-sm text-gray-500">
-                                    No hay {{ Auth::user()->isOperador() ? 'devoluciones' : 'devoluciones ni reembolsos' }} registrados.
+                                <td colspan="{{ Auth::user()->isAdmin() || Auth::user()->isAreaAdmin() ? '8' : '7' }}" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center space-y-4">
+                                        <i class="fas fa-inbox text-gray-300 text-5xl"></i>
+                                        <div class="text-center">
+                                            <p class="text-gray-500 text-lg font-medium mb-2">
+                                                No hay {{ Auth::user()->isOperador() ? 'devoluciones' : 'devoluciones ni reembolsos' }} registrados.
+                                            </p>
+                                            @if(Auth::user()->isOperador())
+                                                <p class="text-gray-400 text-sm mb-4">
+                                                    Para registrar una devolución, ve a uno de tus anticipos y haz clic en "Registrar Devolución" cuando tengas saldo pendiente.
+                                                </p>
+                                                <a href="{{ route('comprobantes.index') }}" 
+                                                   class="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium">
+                                                    <i class="fas fa-arrow-down mr-2"></i>Ir a Mis Anticipos
+                                                </a>
+                                            @else
+                                                <p class="text-gray-400 text-sm mb-4">
+                                                    Las devoluciones las registran los usuarios desde sus anticipos. Los reembolsos los generas tú desde los anticipos de los usuarios.
+                                                </p>
+                                                <a href="{{ route('comprobantes.index') }}" 
+                                                   class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                                                    <i class="fas fa-users mr-2"></i>Ver Usuarios
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse

@@ -9,6 +9,8 @@ class DevolucionReembolso extends Model
 {
     use HasFactory;
 
+    protected $table = 'devoluciones_reembolsos';
+
     // Billeteras digitales hardcodeadas
     const BILLETERAS_DIGITALES = [
         'yape' => 'Yape',

@@ -221,11 +221,12 @@
             </div>
         </div>
 
+        <!-- Lista de Usuarios -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
             <div class="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900">Usuarios</h3>
-                    <p class="text-sm text-gray-500">Crea anticipos o reembolsos para tus colaboradores</p>
+                    <p class="text-sm text-gray-500">Selecciona un usuario para ver sus anticipos y reembolsos</p>
                 </div>
             </div>
             @if($operadores->count())
@@ -236,11 +237,14 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">DNI</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acción</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($operadores as $operador)
+                                @php
+                                    $totalAnticipos = $anticipos->where('user_id', $operador->id)->count();
+                                @endphp
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4 text-sm text-gray-900">
                                         {{ $operador->name }}
@@ -249,10 +253,17 @@
                                     <td class="px-6 py-4 text-sm text-gray-700">{{ $operador->dni ?? '-' }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-500">{{ $operador->email ?? '-' }}</td>
                                     <td class="px-6 py-4 text-sm font-medium">
-                                        <div class="w-full">
+                                        <div class="flex items-center space-x-2">
+                                            <a href="{{ route('users.anticipos', $operador->id) }}"
+                                               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center">
+                                                <i class="fas fa-eye mr-2"></i>Ver Anticipos/Reembolsos
+                                                @if($totalAnticipos > 0)
+                                                    <span class="ml-2 px-2 py-0.5 bg-blue-700 rounded-full text-xs">{{ $totalAnticipos }}</span>
+                                                @endif
+                                            </a>
                                             <a href="{{ route('areas.users.anticipos.create', [Auth::user()->area_id, $operador->id]) }}"
-                                               class="w-full flex justify-center items-center px-4 py-2 text-sm font-semibold bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition">
-                                                <i class="fas fa-money-bill-wave mr-2"></i>Anticipo/Reembolso
+                                               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium flex items-center">
+                                                <i class="fas fa-plus mr-2"></i>Nuevo
                                             </a>
                                         </div>
                                     </td>
@@ -437,118 +448,6 @@
         </div>
     @endif
 
-    @if(Auth::user()->isAreaAdmin())
-        <!-- Anticipos y Reembolsos Realizados -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-900">Anticipos y Reembolsos Realizados</h3>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <input type="text" 
-                                   placeholder="Buscar anticipos..." 
-                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @if($anticipos->isEmpty())
-                <div class="p-12 text-center">
-                    <i class="fas fa-inbox text-gray-300 text-5xl mb-4"></i>
-                    <p class="text-gray-500 text-lg">No hay anticipos o reembolsos registrados aún</p>
-                </div>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuario</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Importe</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Comprobado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($anticipos as $anticipo)
-                                @php
-                                    $totalComprobado = $anticipo->comprobantes->where('estado', 'aprobado')->sum('monto');
-                                @endphp
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ $anticipo->usuario->name ?? '-' }}
-                                        <p class="text-xs text-gray-500">{{ $anticipo->usuario->dni ?? '-' }}</p>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 capitalize">
-                                        {{ $anticipo->tipo }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ $anticipo->fecha->format('d/m/Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                        S/ {{ number_format($anticipo->importe, 2) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        S/ {{ number_format($totalComprobado, 2) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($anticipo->estado === 'completo')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                <i class="fas fa-check mr-1"></i>Completo
-                                            </span>
-                                        @elseif($anticipo->estado === 'aprobado')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                <i class="fas fa-check-circle mr-1"></i>Aprobado
-                                            </span>
-                                        @elseif($anticipo->estado === 'rechazado')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                <i class="fas fa-times-circle mr-1"></i>Rechazado
-                                            </span>
-                                        @elseif($anticipo->estado === 'en_observacion')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                <i class="fas fa-eye mr-1"></i>En observación
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                <i class="fas fa-hourglass-half mr-1"></i>Pendiente
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex items-center space-x-2">
-                                            <a href="{{ route('anticipos.show', $anticipo->id) }}" 
-                                               class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition"
-                                               title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            @if(!in_array($anticipo->estado, ['aprobado', 'rechazado']))
-                                                <form action="{{ route('anticipos.destroy', $anticipo->id) }}" 
-                                                      method="POST" 
-                                                      class="inline"
-                                                      onsubmit="return confirm('¿Estás seguro de que deseas eliminar este anticipo? Esta acción eliminará también todos los comprobantes asociados.')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition"
-                                                            title="Eliminar">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
-    @endif
 
     @if(Auth::user()->isAdmin())
     <!-- Vista para Super Admin - Información General -->
@@ -601,140 +500,6 @@
             </div>
         </div>
     </div>
-    @elseif(!Auth::user()->isOperador())
-        <!-- Comprobantes Table (solo para Area Admin) -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-900">Comprobantes Registrados</h3>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <input type="text" 
-                                   placeholder="Buscar comprobantes..." 
-                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @if($comprobantes->isEmpty())
-                <div class="p-12 text-center">
-                    <i class="fas fa-inbox text-gray-300 text-5xl mb-4"></i>
-                    <p class="text-gray-500 text-lg">No hay comprobantes registrados aún</p>
-                </div>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalle</th>
-                                @auth
-                                    @if(Auth::user()->isAdmin())
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                                    @endif
-                                @endauth
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Archivo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($comprobantes as $comprobante)
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ $comprobante->id }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $comprobante->tipo }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $comprobante->fecha }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                        @if(($comprobante->moneda ?? 'soles') === 'dolares')
-                                            $ {{ number_format($comprobante->monto, 2) }}
-                                        @elseif(($comprobante->moneda ?? 'soles') === 'euros')
-                                            € {{ number_format($comprobante->monto, 2) }}
-                                        @else
-                                            S/ {{ number_format($comprobante->monto, 2) }}
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">{{ $comprobante->detalle ?? '-' }}</td>
-                                    @auth
-                                        @if(Auth::user()->isAdmin())
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $comprobante->user->name ?? '-' }}</td>
-                                        @endif
-                                    @endauth
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($comprobante->archivo)
-                                            <a href="{{ route('comprobantes.download', $comprobante->id) }}" 
-                                               target="_blank"
-                                               class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
-                                                <i class="fas fa-file mr-1"></i>Ver
-                                            </a>
-                                        @else
-                                            <span class="text-xs text-gray-400">Sin archivo</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex items-center space-x-2">
-                                            <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
-                                               class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            @auth
-                                                @if(
-                                                    !Auth::user()->isAdmin() &&
-                                                    $comprobante->user_id === Auth::id() &&
-                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado']) &&
-                                                    (!$comprobante->anticipo_id || !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado']))
-                                                )
-                                                    <a href="{{ route('comprobantes.edit', $comprobante->id) }}" 
-                                                       class="text-yellow-600 hover:text-yellow-900 p-2 hover:bg-yellow-50 rounded transition">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                @endif
-                                            @endauth
-                                            @auth
-                                                @php
-                                                    $puedeEliminar = false;
-                                                    // Puede eliminar si es el dueño del comprobante
-                                                    if ($comprobante->user_id === Auth::id()) {
-                                                        $puedeEliminar = true;
-                                                    }
-                                                    // O si es el dueño del anticipo (generador de la rendición)
-                                                    elseif ($comprobante->anticipo_id && $comprobante->anticipo && $comprobante->anticipo->user_id === Auth::id()) {
-                                                        $puedeEliminar = true;
-                                                    }
-                                                    // O si es super admin
-                                                    elseif (Auth::user()->isAdmin()) {
-                                                        $puedeEliminar = true;
-                                                    }
-                                                @endphp
-                                                @if(
-                                                    $puedeEliminar &&
-                                                    !in_array($comprobante->estado, ['aprobado', 'rechazado']) &&
-                                                    (!$comprobante->anticipo_id || !in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado']))
-                                                )
-                                                    <form action="{{ route('comprobantes.destroy', $comprobante->id) }}" 
-                                                          method="POST"
-                                                          class="inline"
-                                                          onsubmit="return confirm('¿Seguro que deseas eliminar este comprobante?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition" title="Eliminar comprobante">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            @endauth
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
     @endif
 @endsection
 

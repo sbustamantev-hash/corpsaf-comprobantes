@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
 
     // RUTAS CRUD DE USUARIOS - Admin y Area Admin
     Route::resource('users', UserController::class);
+    Route::get('users/{user}/anticipos', [UserController::class, 'anticipos'])->name('users.anticipos');
 
     // RUTAS CRUD DE TIPOS DE COMPROBANTE - Solo super admin
     Route::resource('tipos-comprobante', TipoComprobanteController::class);

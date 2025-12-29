@@ -79,6 +79,10 @@
     <div class="mb-4">
         <nav class="flex items-center space-x-2 text-sm text-gray-600">
             <a href="{{ route('comprobantes.index') }}" class="hover:text-gray-900">← Dashboard</a>
+            @if((Auth::user()->isAreaAdmin() || Auth::user()->isAdmin()) && $anticipo->usuario)
+                <span>/</span>
+                <a href="{{ route('users.anticipos', $anticipo->user_id) }}" class="hover:text-gray-900">{{ $anticipo->usuario->name }}</a>
+            @endif
             <span>/</span>
             <span class="text-gray-900">{{ ucfirst($anticipo->tipo) }} #{{ $anticipo->id }}</span>
         </nav>
@@ -313,28 +317,18 @@
 
                 <!-- Botones de acción -->
                 <div class="mt-6 space-y-3">
-                    @if($restante > 0 && $anticipo->user_id === Auth::id() && in_array($anticipo->estado, ['aprobado', 'pendiente', 'en_observacion']))
-                        @php
-                            $saldoDisponible = $restante - $totalDevoluciones;
-                        @endphp
-                        @if($saldoDisponible > 0)
-                            <a href="{{ route('devoluciones-reembolsos.create', [$anticipo->id, 'devolucion']) }}"
-                               class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-center block">
-                                <i class="fas fa-arrow-down mr-2"></i>Registrar Devolución
-                            </a>
-                        @endif
+                    @if($saldoFinal > 0 && $anticipo->user_id === Auth::id() && in_array($anticipo->estado, ['aprobado', 'pendiente', 'en_observacion']))
+                        <a href="{{ route('devoluciones-reembolsos.create', [$anticipo->id, 'devolucion']) }}"
+                           class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-center block">
+                            <i class="fas fa-arrow-down mr-2"></i>Registrar Devolución
+                        </a>
                     @endif
 
-                    @if($restante < 0 && (Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['aprobado', 'pendiente', 'en_observacion']))
-                        @php
-                            $saldoDisponible = abs($restante) - $totalReembolsos;
-                        @endphp
-                        @if($saldoDisponible > 0)
-                            <a href="{{ route('devoluciones-reembolsos.create', [$anticipo->id, 'reembolso']) }}"
-                               class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-center block">
-                                <i class="fas fa-arrow-up mr-2"></i>Generar Reembolso
-                            </a>
-                        @endif
+                    @if($saldoFinal < 0 && (Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['aprobado', 'pendiente', 'en_observacion']))
+                        <a href="{{ route('devoluciones-reembolsos.create', [$anticipo->id, 'reembolso']) }}"
+                           class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-center block">
+                            <i class="fas fa-arrow-up mr-2"></i>Generar Reembolso
+                        </a>
                     @endif
                 </div>
             </div>

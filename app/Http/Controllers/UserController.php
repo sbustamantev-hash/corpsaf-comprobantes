@@ -276,5 +276,31 @@ class UserController extends Controller
         return redirect()->route('users.index')
             ->with('success', 'Usuario eliminado correctamente.');
     }
+
+    /**
+     * Mostrar anticipos y reembolsos de un usuario específico
+     */
+    public function anticipos($id)
+    {
+        $currentUser = Auth::user();
+        $user = User::with('area')->findOrFail($id);
+
+        // Verificar permisos
+        if ($currentUser->isAreaAdmin()) {
+            if ($user->area_id !== $currentUser->area_id) {
+                abort(403, 'No tienes permisos para ver los anticipos de este usuario.');
+            }
+        } elseif (!$currentUser->isAdmin()) {
+            abort(403, 'No tienes permisos para ver anticipos de usuarios.');
+        }
+
+        // Cargar anticipos del usuario
+        $anticipos = \App\Models\Anticipo::with(['comprobantes', 'banco', 'creador'])
+            ->where('user_id', $user->id)
+            ->orderBy('fecha', 'desc')
+            ->get();
+
+        return view('users.anticipos', compact('user', 'anticipos'));
+    }
 }
 
