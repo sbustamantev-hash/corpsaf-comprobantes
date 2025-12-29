@@ -76,6 +76,19 @@
                     <span class="font-medium">Dashboard</span>
                 </a>
 
+                <!-- Devoluciones y Reembolsos -->
+                <a href="{{ route('devoluciones-reembolsos.index') }}" onclick="closeSidebarOnMobile()"
+                    class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('devoluciones-reembolsos.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <i class="fas fa-exchange-alt w-5"></i>
+                    <span class="font-medium">
+                        @if(auth()->user()->isOperador())
+                            Mis Devoluciones
+                        @else
+                            Devoluciones / Reembolsos
+                        @endif
+                    </span>
+                </a>
+
                 @if(auth()->user()->isAdmin() || auth()->user()->isAreaAdmin())
                     <div class="pt-2 mt-2 border-t border-gray-200">
                         <p class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Administración</p>

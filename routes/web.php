@@ -14,6 +14,7 @@ use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\RequerimientoController;
 use App\Http\Controllers\MensajeController;
+use App\Http\Controllers\DevolucionReembolsoController;
 
 /*
  RUTAS DE AUTENTICACIÓN
@@ -98,6 +99,13 @@ Route::middleware('auth')->group(function () {
     Route::get('anticipos/{anticipo}/export/pdf', [AnticipoController::class, 'exportPdf'])->name('anticipos.export.pdf');
     Route::get('anticipos/{anticipo}/export/excel', [AnticipoController::class, 'exportExcel'])->name('anticipos.export.excel');
     Route::delete('anticipos/{anticipo}', [AnticipoController::class, 'destroy'])->name('anticipos.destroy');
+
+    // Rutas para devoluciones y reembolsos
+    Route::get('devoluciones-reembolsos', [DevolucionReembolsoController::class, 'index'])->name('devoluciones-reembolsos.index');
+    Route::get('anticipos/{anticipo}/devoluciones-reembolsos/create/{tipo}', [DevolucionReembolsoController::class, 'create'])->name('devoluciones-reembolsos.create');
+    Route::post('anticipos/{anticipo}/devoluciones-reembolsos', [DevolucionReembolsoController::class, 'store'])->name('devoluciones-reembolsos.store');
+    Route::post('devoluciones-reembolsos/{id}/aprobar', [DevolucionReembolsoController::class, 'aprobar'])->name('devoluciones-reembolsos.aprobar');
+    Route::post('devoluciones-reembolsos/{id}/rechazar', [DevolucionReembolsoController::class, 'rechazar'])->name('devoluciones-reembolsos.rechazar');
 
     // RUTAS DE REQUERIMIENTOS - Marketing y Empresas
     Route::resource('requerimientos', RequerimientoController::class);

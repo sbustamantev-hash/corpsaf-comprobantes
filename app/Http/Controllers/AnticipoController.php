@@ -168,7 +168,9 @@ class AnticipoController extends Controller
             'banco',
             'creador',
             'comprobantes.user',
-            'comprobantes.observaciones.user'
+            'comprobantes.observaciones.user',
+            'devolucionesReembolsos.banco',
+            'devolucionesReembolsos.creador'
         ])->findOrFail($id);
 
         // Verificar permisos
@@ -185,9 +187,21 @@ class AnticipoController extends Controller
         $totalComprobado = $anticipo->comprobantes()->where('estado', 'aprobado')->sum('monto');
         $totalRechazado = $anticipo->comprobantes()->where('estado', 'rechazado')->sum('monto');
         $restante = $anticipo->importe - $totalComprobado; // Permite valores negativos
+        
+        // Calcular devoluciones y reembolsos aprobados
+        $totalDevoluciones = $anticipo->devolucionesReembolsos()
+            ->where('tipo', 'devolucion')
+            ->where('estado', 'aprobado')
+            ->sum('importe');
+        $totalReembolsos = $anticipo->devolucionesReembolsos()
+            ->where('tipo', 'reembolso')
+            ->where('estado', 'aprobado')
+            ->sum('importe');
+        
+        $saldoFinal = $restante - $totalDevoluciones + $totalReembolsos;
         $porcentaje = $anticipo->importe > 0 ? min(100, ($totalComprobado / $anticipo->importe) * 100) : 0;
 
-        return view('anticipos.show', compact('anticipo', 'totalComprobado', 'totalRechazado', 'restante', 'porcentaje'));
+        return view('anticipos.show', compact('anticipo', 'totalComprobado', 'totalRechazado', 'restante', 'porcentaje', 'totalDevoluciones', 'totalReembolsos', 'saldoFinal'));
     }
 
     /**

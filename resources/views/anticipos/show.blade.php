@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('title', 'Detalles del Anticipo')
 @section('subtitle', 'Revisión y gestión del anticipo/reembolso')
 
@@ -274,16 +278,172 @@
                         <span class="text-sm text-gray-600">Importe Aprobado</span>
                         <span class="text-lg font-semibold text-blue-600">{{ $simbolo }} {{ number_format($totalComprobado, 2) }}</span>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Saldo a Reembolsar</span>
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                        <span class="text-sm text-gray-600">Saldo Pendiente</span>
                         <span class="text-lg font-semibold {{ $restante < 0 ? 'text-red-600' : ($restante > 0 ? 'text-yellow-600' : 'text-green-600') }}">
                             {{ $simbolo }} {{ number_format($restante, 2) }}
                         </span>
                     </div>
+                    @if($totalDevoluciones > 0)
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Devoluciones Aprobadas</span>
+                            <span class="text-sm font-semibold text-orange-600">
+                                {{ $simbolo }} {{ number_format($totalDevoluciones, 2) }}
+                            </span>
+                        </div>
+                    @endif
+                    @if($totalReembolsos > 0)
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Reembolsos Aprobados</span>
+                            <span class="text-sm font-semibold text-green-600">
+                                {{ $simbolo }} {{ number_format($totalReembolsos, 2) }}
+                            </span>
+                        </div>
+                    @endif
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Saldo Final</span>
+                        <span class="text-lg font-bold {{ $saldoFinal < 0 ? 'text-red-600' : ($saldoFinal > 0 ? 'text-yellow-600' : 'text-green-600') }}">
+                            {{ $simbolo }} {{ number_format($saldoFinal, 2) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="mt-6 space-y-3">
+                    @if($restante > 0 && $anticipo->user_id === Auth::id() && in_array($anticipo->estado, ['aprobado', 'pendiente', 'en_observacion']))
+                        @php
+                            $saldoDisponible = $restante - $totalDevoluciones;
+                        @endphp
+                        @if($saldoDisponible > 0)
+                            <a href="{{ route('devoluciones-reembolsos.create', [$anticipo->id, 'devolucion']) }}"
+                               class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-center block">
+                                <i class="fas fa-arrow-down mr-2"></i>Registrar Devolución
+                            </a>
+                        @endif
+                    @endif
+
+                    @if($restante < 0 && (Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && in_array($anticipo->estado, ['aprobado', 'pendiente', 'en_observacion']))
+                        @php
+                            $saldoDisponible = abs($restante) - $totalReembolsos;
+                        @endphp
+                        @if($saldoDisponible > 0)
+                            <a href="{{ route('devoluciones-reembolsos.create', [$anticipo->id, 'reembolso']) }}"
+                               class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-center block">
+                                <i class="fas fa-arrow-up mr-2"></i>Generar Reembolso
+                            </a>
+                        @endif
+                    @endif
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Sección de Devoluciones y Reembolsos -->
+    @if($anticipo->devolucionesReembolsos->count() > 0)
+        <div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Devoluciones y Reembolsos</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Importe</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($anticipo->devolucionesReembolsos as $dr)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $dr->tipo === 'devolucion' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800' }}">
+                                        {{ ucfirst($dr->tipo) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-700">
+                                    @if($dr->metodo_pago === 'deposito_cuenta')
+                                        @if($dr->banco)
+                                            {{ $dr->banco->descripcion }}
+                                        @elseif($dr->billetera_digital)
+                                            {{ \App\Models\DevolucionReembolso::getBilleterasDigitales()[$dr->billetera_digital] }}
+                                        @endif
+                                        @if($dr->numero_operacion)
+                                            <br><span class="text-xs text-gray-500">Op: {{ $dr->numero_operacion }}</span>
+                                        @endif
+                                    @else
+                                        Depósito en caja
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                                    @php
+                                        $simboloDr = match($dr->moneda) {
+                                            'dolares' => '$',
+                                            'euros' => '€',
+                                            default => 'S/.'
+                                        };
+                                    @endphp
+                                    {{ $simboloDr }} {{ number_format($dr->importe, 2) }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-700">
+                                    {{ $dr->fecha_deposito ? $dr->fecha_deposito->format('d/m/Y') : ($dr->fecha_devolucion ? $dr->fecha_devolucion->format('d/m/Y') : '-') }}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    @if($dr->estado === 'aprobado')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>Aprobado
+                                        </span>
+                                    @elseif($dr->estado === 'rechazado')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle mr-1"></i>Rechazado
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-hourglass-half mr-1"></i>Pendiente
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        @if($dr->archivo)
+                                            <a href="{{ Storage::url($dr->archivo) }}" target="_blank"
+                                               class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition"
+                                               title="Ver archivo">
+                                                <i class="fas fa-file"></i>
+                                            </a>
+                                        @endif
+                                        @auth
+                                            @if((Auth::user()->isAdmin() || Auth::user()->isAreaAdmin()) && $dr->estado === 'pendiente')
+                                                <form action="{{ route('devoluciones-reembolsos.aprobar', $dr->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            class="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded transition"
+                                                            title="Aprobar"
+                                                            onclick="return confirm('¿Estás seguro de que deseas aprobar esta {{ $dr->tipo }}?')">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('devoluciones-reembolsos.rechazar', $dr->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition"
+                                                            title="Rechazar"
+                                                            onclick="return confirm('¿Estás seguro de que deseas rechazar esta {{ $dr->tipo }}?')">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endauth
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 
     <!-- Modales para Aprobar/Rechazar -->
     @auth

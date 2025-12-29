@@ -65,4 +65,27 @@ class Anticipo extends Model
     {
         return $this->hasMany(Comprobante::class);
     }
+
+    public function devolucionesReembolsos()
+    {
+        return $this->hasMany(DevolucionReembolso::class);
+    }
+
+    /**
+     * Calcular saldo pendiente considerando devoluciones y reembolsos aprobados
+     */
+    public function getSaldoPendienteAttribute()
+    {
+        $totalComprobado = $this->comprobantes()->where('estado', 'aprobado')->sum('monto');
+        $totalDevoluciones = $this->devolucionesReembolsos()
+            ->where('tipo', 'devolucion')
+            ->where('estado', 'aprobado')
+            ->sum('importe');
+        $totalReembolsos = $this->devolucionesReembolsos()
+            ->where('tipo', 'reembolso')
+            ->where('estado', 'aprobado')
+            ->sum('importe');
+        
+        return ($this->importe - $totalComprobado) - $totalDevoluciones + $totalReembolsos;
+    }
 }
