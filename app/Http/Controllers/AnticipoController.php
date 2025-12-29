@@ -75,6 +75,18 @@ class AnticipoController extends Controller
 
         $request->validate($rules);
 
+        // Verificar si ya existe un anticipo/reembolso activo para este usuario
+        $anticipoActivo = Anticipo::where('user_id', $user->id)
+            ->whereIn('estado', ['pendiente', 'en_observacion'])
+            ->first();
+
+        if ($anticipoActivo) {
+            $tipoTexto = $anticipoActivo->tipo === 'anticipo' ? 'anticipo' : 'reembolso';
+            return redirect()->route('areas.users.anticipos.create', [$area->id, $user->id])
+                ->with('error', "Ya existe un {$tipoTexto} activo para este usuario. Debe completar o cancelar el {$tipoTexto} existente antes de crear uno nuevo.")
+                ->withInput();
+        }
+
         Anticipo::create([
             'area_id' => $area->id,
             'user_id' => $user->id,

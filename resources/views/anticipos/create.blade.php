@@ -23,6 +23,18 @@
                 </div>
             </div>
 
+            @if (session('error'))
+                <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                     <strong class="font-semibold">Corrige los siguientes errores:</strong>
