@@ -62,6 +62,7 @@ class AnticipoController extends Controller
             'fecha' => 'required|date',
             'moneda' => 'required|in:soles,dolares,euros',
             'descripcion' => 'required|string',
+            'dias_para_cerrar' => 'nullable|integer|min:1',
         ];
 
         if ($request->tipo === 'anticipo') {
@@ -100,6 +101,7 @@ class AnticipoController extends Controller
             'descripcion' => $request->descripcion,
             'estado' => 'pendiente',
             'tipo_rendicion_id' => $request->tipo_rendicion_id,
+            'dias_para_cerrar' => $request->dias_para_cerrar,
         ]);
 
         return redirect()->route('comprobantes.index')
@@ -239,6 +241,7 @@ class AnticipoController extends Controller
             'fecha' => 'required|date',
             'moneda' => 'required|in:soles,dolares,euros',
             'descripcion' => 'required|string',
+            'dias_para_cerrar' => 'nullable|integer|min:1',
         ];
 
         if ($request->tipo === 'anticipo') {
@@ -261,6 +264,7 @@ class AnticipoController extends Controller
             'importe' => $validated['tipo'] === 'reembolso' ? null : $validated['importe'],
             'banco_id' => $validated['tipo'] === 'reembolso' ? null : ($validated['banco_id'] ?? null),
             'tipo_rendicion_id' => $validated['tipo'] === 'reembolso' ? null : ($validated['tipo_rendicion_id'] ?? null),
+            'dias_para_cerrar' => $validated['dias_para_cerrar'] ?? null,
         ];
 
         $anticipo->update($updateData);

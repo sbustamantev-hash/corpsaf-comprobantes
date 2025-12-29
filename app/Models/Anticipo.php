@@ -23,6 +23,7 @@ class Anticipo extends Model
         'estado',
         'tipo_rendicion_id',
         'aprobado_por',
+        'dias_para_cerrar',
     ];
 
     protected $casts = [
