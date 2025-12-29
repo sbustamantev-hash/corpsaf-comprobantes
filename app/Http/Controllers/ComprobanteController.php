@@ -698,11 +698,18 @@ class ComprobanteController extends Controller
             abort(403, 'Solo los administradores pueden aprobar comprobantes.');
         }
 
-        $comprobante = Comprobante::with('user')->findOrFail($id);
+        $comprobante = Comprobante::with(['user', 'anticipo'])->findOrFail($id);
 
         // Area admin solo puede aprobar comprobantes de su Empresa
         if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
             abort(403, 'Solo puedes aprobar comprobantes de tu Empresa.');
+        }
+
+        // No permitir aprobar/rechazar comprobantes si el anticipo está aprobado o rechazado
+        if ($comprobante->anticipo_id && $comprobante->anticipo) {
+            if (in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes modificar el estado de comprobantes de un anticipo aprobado o rechazado.');
+            }
         }
 
         $comprobante->estado = 'aprobado';
@@ -724,11 +731,18 @@ class ComprobanteController extends Controller
             abort(403, 'Solo los administradores pueden rechazar comprobantes.');
         }
 
-        $comprobante = Comprobante::with('user')->findOrFail($id);
+        $comprobante = Comprobante::with(['user', 'anticipo'])->findOrFail($id);
 
         // Area admin solo puede rechazar comprobantes de su Empresa
         if ($user->isAreaAdmin() && $comprobante->user->area_id !== $user->area_id) {
             abort(403, 'Solo puedes rechazar comprobantes de tu Empresa.');
+        }
+
+        // No permitir aprobar/rechazar comprobantes si el anticipo está aprobado o rechazado
+        if ($comprobante->anticipo_id && $comprobante->anticipo) {
+            if (in_array($comprobante->anticipo->estado, ['aprobado', 'rechazado'])) {
+                abort(403, 'No puedes modificar el estado de comprobantes de un anticipo aprobado o rechazado.');
+            }
         }
 
         $comprobante->estado = 'rechazado';

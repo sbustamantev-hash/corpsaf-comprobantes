@@ -303,11 +303,18 @@ class AnticipoController extends Controller
             'mensaje' => 'required|string|min:2',
         ]);
 
-        $anticipo = Anticipo::with('area')->findOrFail($id);
+        $anticipo = Anticipo::with(['area', 'comprobantes'])->findOrFail($id);
 
         // Area admin solo puede aprobar anticipos de su Empresa
         if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
             abort(403, 'Solo puedes aprobar anticipos de tu Empresa.');
+        }
+
+        // Aprobar todos los comprobantes pendientes del anticipo
+        $comprobantesPendientes = $anticipo->comprobantes()->where('estado', 'pendiente')->get();
+        foreach ($comprobantesPendientes as $comprobante) {
+            $comprobante->estado = 'aprobado';
+            $comprobante->save();
         }
 
         // Cambiar estado y guardar quien aprobó
@@ -315,8 +322,13 @@ class AnticipoController extends Controller
         $anticipo->aprobado_por = $user->id;
         $anticipo->save();
 
+        $mensaje = 'Anticipo aprobado correctamente.';
+        if ($comprobantesPendientes->count() > 0) {
+            $mensaje .= ' Se aprobaron ' . $comprobantesPendientes->count() . ' comprobante(s) pendiente(s).';
+        }
+
         return redirect()->route('anticipos.show', $anticipo->id)
-            ->with('success', 'Anticipo aprobado correctamente.');
+            ->with('success', $mensaje);
     }
 
     /**
@@ -335,11 +347,18 @@ class AnticipoController extends Controller
             'mensaje' => 'required|string|min:2',
         ]);
 
-        $anticipo = Anticipo::with('area')->findOrFail($id);
+        $anticipo = Anticipo::with(['area', 'comprobantes'])->findOrFail($id);
 
         // Area admin solo puede rechazar anticipos de su Empresa
         if ($user->isAreaAdmin() && $anticipo->area_id !== $user->area_id) {
             abort(403, 'Solo puedes rechazar anticipos de tu Empresa.');
+        }
+
+        // Rechazar todos los comprobantes pendientes del anticipo
+        $comprobantesPendientes = $anticipo->comprobantes()->where('estado', 'pendiente')->get();
+        foreach ($comprobantesPendientes as $comprobante) {
+            $comprobante->estado = 'rechazado';
+            $comprobante->save();
         }
 
         // Cambiar estado y guardar quien rechazó
@@ -347,8 +366,13 @@ class AnticipoController extends Controller
         $anticipo->aprobado_por = $user->id;
         $anticipo->save();
 
+        $mensaje = 'Anticipo rechazado correctamente.';
+        if ($comprobantesPendientes->count() > 0) {
+            $mensaje .= ' Se rechazaron ' . $comprobantesPendientes->count() . ' comprobante(s) pendiente(s).';
+        }
+
         return redirect()->route('anticipos.show', $anticipo->id)
-            ->with('success', 'Anticipo rechazado correctamente.');
+            ->with('success', $mensaje);
     }
 
     /**

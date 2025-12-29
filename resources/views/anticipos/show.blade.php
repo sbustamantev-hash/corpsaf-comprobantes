@@ -212,34 +212,37 @@
                                             </a>
                                             @auth
                                                 @if(Auth::user()->isAdmin() || Auth::user()->isAreaAdmin())
-                                                    {{-- Si está aprobado: mostrar botón para rechazar --}}
-                                                    @if($comprobante->estado === 'aprobado')
-                                                        <form action="{{ route('comprobantes.rechazar', $comprobante->id) }}" method="POST" class="inline">
-                                                            @csrf
-                                                            <button type="submit" 
-                                                                    class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition"
-                                                                    title="Rechazar comprobante"
-                                                                    onclick="return confirm('¿Estás seguro de que deseas rechazar este comprobante?')">
-                                                                <i class="fas fa-times"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                    
-                                                    {{-- Si está rechazado o pendiente: mostrar botón para aprobar --}}
-                                                    @if(in_array($comprobante->estado, ['pendiente', 'rechazado']))
-                                                        <form action="{{ route('comprobantes.aprobar', $comprobante->id) }}" method="POST" class="inline">
-                                                            @csrf
-                                                            <button type="submit" 
-                                                                    class="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded transition"
-                                                                    title="Aprobar comprobante"
-                                                                    onclick="return confirm('¿Estás seguro de que deseas aprobar este comprobante?')">
-                                                                <i class="fas fa-check"></i>
-                                                            </button>
-                                                        </form>
+                                                    {{-- Solo mostrar botones de aprobar/rechazar si el anticipo NO está aprobado o rechazado --}}
+                                                    @if(!in_array($anticipo->estado, ['aprobado', 'rechazado']))
+                                                        {{-- Si está aprobado: mostrar botón para rechazar --}}
+                                                        @if($comprobante->estado === 'aprobado')
+                                                            <form action="{{ route('comprobantes.rechazar', $comprobante->id) }}" method="POST" class="inline">
+                                                                @csrf
+                                                                <button type="submit" 
+                                                                        class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition"
+                                                                        title="Rechazar comprobante"
+                                                                        onclick="return confirm('¿Estás seguro de que deseas rechazar este comprobante?')">
+                                                                    <i class="fas fa-times"></i>
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                        
+                                                        {{-- Si está rechazado o pendiente: mostrar botón para aprobar --}}
+                                                        @if(in_array($comprobante->estado, ['pendiente', 'rechazado']))
+                                                            <form action="{{ route('comprobantes.aprobar', $comprobante->id) }}" method="POST" class="inline">
+                                                                @csrf
+                                                                <button type="submit" 
+                                                                        class="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded transition"
+                                                                        title="Aprobar comprobante"
+                                                                        onclick="return confirm('¿Estás seguro de que deseas aprobar este comprobante?')">
+                                                                    <i class="fas fa-check"></i>
+                                                                </button>
+                                                            </form>
+                                                        @endif
                                                     @endif
                                                     
                                                     {{-- Si está aprobado: también mostrar opción para mandar a observación (ir a la página de detalle donde se puede agregar observación) --}}
-                                                    @if($comprobante->estado === 'aprobado')
+                                                    @if($comprobante->estado === 'aprobado' && !in_array($anticipo->estado, ['aprobado', 'rechazado']))
                                                         <a href="{{ route('comprobantes.show', $comprobante->id) }}" 
                                                            class="text-yellow-600 hover:text-yellow-900 p-2 hover:bg-yellow-50 rounded transition"
                                                            title="Agregar observación">
