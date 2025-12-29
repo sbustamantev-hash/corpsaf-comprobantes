@@ -172,6 +172,31 @@
                     @enderror
                 </div>
 
+                {{-- Campos de Origen y Destino (solo para Planilla de Movilidad) --}}
+                <div id="movilidad-fields" class="{{ $comprobante->tipoComprobante() && stripos($comprobante->tipoComprobante()->descripcion, 'Planilla de Movilidad') !== false ? '' : 'hidden' }}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Origen <span class="text-red-500">*</span></label>
+                            <input type="text" name="origen" id="origen-input"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('origen') border-red-500 @enderror"
+                                value="{{ old('origen', $comprobante->origen) }}" placeholder="Ej: Lima, San Isidro">
+                            @error('origen')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Destino <span class="text-red-500">*</span></label>
+                            <input type="text" name="destino" id="destino-input"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('destino') border-red-500 @enderror"
+                                value="{{ old('destino', $comprobante->destino) }}" placeholder="Ej: Lima, Miraflores">
+                            @error('destino')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Archivo actual --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Archivo actual</label>
@@ -344,6 +369,86 @@
         }
 
         conceptoSelect.addEventListener('change', checkConceptoOtros);
+    }
+
+    // Manejar campos de Origen y Destino para Planilla de Movilidad
+    const tipoSelect = document.querySelector('select[name="tipo"]');
+    const movilidadFields = document.getElementById('movilidad-fields');
+    const origenInput = document.getElementById('origen-input');
+    const destinoInput = document.getElementById('destino-input');
+    const monedaSelect = document.querySelector('select[name="moneda"]');
+    const montoInput = document.querySelector('input[name="monto"]');
+    const rmv = {{ $rmv ?? 1130 }};
+    const maxMontoPlanilla = rmv * 0.04;
+
+    function toggleMovilidadFields() {
+        const selectedOption = tipoSelect.options[tipoSelect.selectedIndex];
+        const tipoTexto = selectedOption ? selectedOption.text.toUpperCase() : '';
+        
+        if (tipoTexto.includes('PLANILLA DE MOVILIDAD')) {
+            // Mostrar campos de origen y destino
+            if (movilidadFields) {
+                movilidadFields.classList.remove('hidden');
+            }
+            if (origenInput) origenInput.required = true;
+            if (destinoInput) destinoInput.required = true;
+
+            // Forzar Soles
+            if (monedaSelect) {
+                monedaSelect.value = 'soles';
+                monedaSelect.classList.add('bg-gray-100', 'cursor-not-allowed');
+                Array.from(monedaSelect.options).forEach(opt => {
+                    if (opt.value !== 'soles') opt.disabled = true;
+                });
+            }
+
+            // Validar monto
+            if (montoInput && parseFloat(montoInput.value) > maxMontoPlanilla) {
+                alert(`El monto máximo para Planilla de Movilidad es del 4% del RMV (S/ ${maxMontoPlanilla.toFixed(2)})`);
+                montoInput.value = maxMontoPlanilla.toFixed(2);
+            }
+        } else {
+            // Ocultar campos de origen y destino
+            if (movilidadFields) {
+                movilidadFields.classList.add('hidden');
+            }
+            if (origenInput) {
+                origenInput.required = false;
+                if (!origenInput.value) origenInput.value = '';
+            }
+            if (destinoInput) {
+                destinoInput.required = false;
+                if (!destinoInput.value) destinoInput.value = '';
+            }
+
+            // Restaurar moneda
+            if (monedaSelect) {
+                monedaSelect.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                Array.from(monedaSelect.options).forEach(opt => {
+                    opt.disabled = false;
+                });
+            }
+        }
+    }
+
+    if (tipoSelect) {
+        tipoSelect.addEventListener('change', toggleMovilidadFields);
+        toggleMovilidadFields(); // Ejecutar al cargar para establecer estado inicial
+    }
+
+    // Validar monto al cambiar
+    if (montoInput && tipoSelect) {
+        montoInput.addEventListener('blur', function() {
+            const selectedOption = tipoSelect.options[tipoSelect.selectedIndex];
+            const tipoTexto = selectedOption ? selectedOption.text.toUpperCase() : '';
+            if (tipoTexto.includes('PLANILLA DE MOVILIDAD')) {
+                const monto = parseFloat(montoInput.value) || 0;
+                if (monto > maxMontoPlanilla) {
+                    alert(`El monto máximo para Planilla de Movilidad es del 4% del RMV (S/ ${maxMontoPlanilla.toFixed(2)})`);
+                    montoInput.value = maxMontoPlanilla.toFixed(2);
+                }
+            }
+        });
     }
 </script>
 @endsection

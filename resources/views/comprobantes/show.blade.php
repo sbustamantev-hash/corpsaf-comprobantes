@@ -154,6 +154,27 @@
                             @endif
                         </p>
                     </div>
+                    @if($comprobante->tipoComprobante() && stripos($comprobante->tipoComprobante()->descripcion, 'Planilla de Movilidad') !== false)
+                        @if($comprobante->origen || $comprobante->destino)
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <h3 class="text-sm font-semibold text-gray-900 mb-3">Información de Movilidad</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    @if($comprobante->origen)
+                                        <div>
+                                            <p class="text-sm text-gray-500 mb-1">Origen</p>
+                                            <p class="text-base font-medium text-gray-900">{{ $comprobante->origen }}</p>
+                                        </div>
+                                    @endif
+                                    @if($comprobante->destino)
+                                        <div>
+                                            <p class="text-sm text-gray-500 mb-1">Destino</p>
+                                            <p class="text-base font-medium text-gray-900">{{ $comprobante->destino }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
 

@@ -166,6 +166,8 @@ class ComprobanteController extends Controller
             'moneda' => 'required|in:soles,dolares,euros',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
+            'origen' => 'nullable|string|max:255',
+            'destino' => 'nullable|string|max:255',
             'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf|max:40960',
             'anticipo_id' => 'nullable|exists:anticipos,id'
         ];
@@ -283,6 +285,8 @@ class ComprobanteController extends Controller
             'moneda' => $validated['moneda'],
             'fecha' => $validated['fecha'],
             'detalle' => $validated['detalle'] ?? null,
+            'origen' => $validated['origen'] ?? null,
+            'destino' => $validated['destino'] ?? null,
             'archivo' => $archivoPath,
         ]);
 
@@ -381,6 +385,8 @@ class ComprobanteController extends Controller
             'moneda' => 'required|in:soles,dolares,euros',
             'fecha' => 'required|date',
             'detalle' => 'nullable|string',
+            'origen' => 'nullable|string|max:255',
+            'destino' => 'nullable|string|max:255',
             'archivo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:40960'
         ];
 
@@ -397,6 +403,8 @@ class ComprobanteController extends Controller
         $tipoComprobante = \App\Models\TipoComprobante::where('codigo', $request->tipo)->first();
         if ($tipoComprobante && stripos($tipoComprobante->descripcion, 'Planilla de Movilidad') !== false) {
             $rules['moneda'] = 'required|in:soles';
+            $rules['origen'] = 'required|string|max:255';
+            $rules['destino'] = 'required|string|max:255';
             // 4% del RMV
             $maxMonto = $rmv * 0.04;
             if ($request->monto > $maxMonto) {
@@ -406,7 +414,7 @@ class ComprobanteController extends Controller
             }
         }
 
-        $request->validate($rules);
+        $validated = $request->validate($rules);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -491,6 +499,8 @@ class ComprobanteController extends Controller
         $comprobante->moneda = $request->moneda;
         $comprobante->fecha = $request->fecha;
         $comprobante->detalle = $request->detalle;
+        $comprobante->origen = $validated['origen'] ?? null;
+        $comprobante->destino = $validated['destino'] ?? null;
 
         $comprobante->save();
 

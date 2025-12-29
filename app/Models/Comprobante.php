@@ -24,6 +24,8 @@ class Comprobante extends Model
         'moneda',
         'fecha',
         'detalle',
+        'origen',
+        'destino',
         'archivo',
         'estado',
     ];

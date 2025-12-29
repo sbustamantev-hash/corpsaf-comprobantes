@@ -157,6 +157,31 @@
                         @enderror
                     </div>
 
+                    <!-- Campos de Origen y Destino (solo para Planilla de Movilidad) -->
+                    <div id="movilidad-fields" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Origen <span class="text-red-500">*</span></label>
+                                <input type="text" name="origen" id="origen-input"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('origen') border-red-500 @enderror"
+                                    value="{{ old('origen') }}" placeholder="Ej: Lima, San Isidro">
+                                @error('origen')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Destino <span class="text-red-500">*</span></label>
+                                <input type="text" name="destino" id="destino-input"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('destino') border-red-500 @enderror"
+                                    value="{{ old('destino') }}" placeholder="Ej: Lima, Miraflores">
+                                @error('destino')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Archivo (imagen o PDF) <span
                                 class="text-red-500">*</span></label>
@@ -292,6 +317,9 @@
         const tipoSelect = document.querySelector('select[name="tipo"]');
         const monedaSelect = document.querySelector('select[name="moneda"]');
         const montoInput = document.querySelector('input[name="monto"]');
+        const movilidadFields = document.getElementById('movilidad-fields');
+        const origenInput = document.getElementById('origen-input');
+        const destinoInput = document.getElementById('destino-input');
         const rmv = {{ $rmv ?? 1130 }};
         const maxMontoPlanilla = rmv * 0.04;
 
@@ -309,6 +337,13 @@
                         if (opt.value !== 'soles') opt.disabled = true;
                     });
 
+                    // Mostrar campos de origen y destino
+                    if (movilidadFields) {
+                        movilidadFields.classList.remove('hidden');
+                    }
+                    if (origenInput) origenInput.required = true;
+                    if (destinoInput) destinoInput.required = true;
+
                     // Validar Monto
                     validateMonto();
                 } else {
@@ -317,6 +352,19 @@
                     Array.from(monedaSelect.options).forEach(opt => {
                         opt.disabled = false;
                     });
+
+                    // Ocultar campos de origen y destino
+                    if (movilidadFields) {
+                        movilidadFields.classList.add('hidden');
+                    }
+                    if (origenInput) {
+                        origenInput.required = false;
+                        origenInput.value = '';
+                    }
+                    if (destinoInput) {
+                        destinoInput.required = false;
+                        destinoInput.value = '';
+                    }
                 }
             }
 
